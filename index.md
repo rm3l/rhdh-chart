@@ -1,6 +1,6 @@
-# Janus IDP Backstage Helm Repository
+# RHDH Backstage Helm Repository
 
-This branch contains the assets associated to serve the static helm index and chart files
+This branch contains the assets associated to serve the static helm index and chart files for Red Hat Developer Hub (a Backstage application for OpenShift).
 
 ## Usage
 

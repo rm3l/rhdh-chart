@@ -10,7 +10,7 @@ $ helm repo add janus-idp-backstage https://janus-idp.github.io/helm-backstage
 
 $ helm repo list
 NAME                                  URL
-janus-idp-backstage                   https://janus-idp.github.io/helm-backstage
+janus-idp-backstage            https://janus-idp.github.io/helm-backstage
 ```
 
 ## Helm index

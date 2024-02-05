@@ -15,6 +15,51 @@ entries:
       charts.openshift.io/provider: Red Hat Developer Hub Team
       charts.openshift.io/supportURL: https://github.com/redhat-developer/rhdh-chart/issues
     apiVersion: v2
+    created: "2024-02-05T13:57:57.38918978Z"
+    dependencies:
+    - name: common
+      repository: https://charts.bitnami.com/bitnami
+      tags:
+      - bitnami-common
+      version: 2.14.1
+    - alias: upstream
+      name: backstage
+      repository: https://backstage.github.io/charts
+      version: 1.8.2
+    description: A Helm chart for deploying RHDH (a Backstage application)
+    digest: cb63e6c3a03ccc5696cda77978c6fefdd31dcd870858442693a3c7304058c18c
+    home: https://redhat-developer.github.io/rhdh-chart/
+    icon: https://avatars.githubusercontent.com/u/117844786
+    keywords:
+    - backstage
+    - idp
+    - janus-idp
+    kubeVersion: '>= 1.19.0-0'
+    maintainers:
+    - name: Red Hat Developer Hub Team
+      url: https://github.com/redhat-developer/rhdh-chart
+    name: backstage
+    sources:
+    - https://github.com/redhat-developer/rhdh-chart
+    - https://github.com/janus-idp/backstage-showcase
+    type: application
+    urls:
+    - https://github.com/redhat-developer/rhdh-chart/releases/download/backstage-2.13.2/backstage-2.13.2.tgz
+    version: 2.13.2
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: support
+          url: https://github.com/redhat-developer/rhdh-chart/issues
+        - name: Chart Source
+          url: https://github.com/redhat-developer/rhdh-chart
+        - name: Default Image Source
+          url: https://github.com/janus-idp/backstage-showcase
+      charts.openshift.io/name: Backstage
+      charts.openshift.io/provider: Red Hat Developer Hub Team
+      charts.openshift.io/supportURL: https://github.com/redhat-developer/rhdh-chart/issues
+    apiVersion: v2
     created: "2024-02-02T19:57:27.695185023Z"
     dependencies:
     - name: common
@@ -1983,4 +2028,4 @@ entries:
     urls:
     - https://github.com/janus-idp/helm-backstage/releases/download/backstage-0.1.1/backstage-0.1.1.tgz
     version: 0.1.1
-generated: "2024-02-02T19:57:27.695523595Z"
+generated: "2024-02-05T13:57:57.389334439Z"

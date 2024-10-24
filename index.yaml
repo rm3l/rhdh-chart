@@ -15,6 +15,54 @@ entries:
       charts.openshift.io/provider: Red Hat Developer Hub Team
       charts.openshift.io/supportURL: https://github.com/redhat-developer/rhdh-chart/issues
     apiVersion: v2
+    created: "2024-10-24T14:27:52.538287443Z"
+    dependencies:
+    - name: common
+      repository: https://charts.bitnami.com/bitnami
+      tags:
+      - bitnami-common
+      version: 2.14.1
+    - alias: upstream
+      name: backstage
+      repository: https://backstage.github.io/charts
+      version: 1.9.1
+    description: 'A Helm chart for deploying Red Hat Developer Hub.  The telemetry
+      data collection feature is enabled by default. Red Hat Developer Hub sends telemetry
+      data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin.
+      To disable this and to learn what data is being collected, see https://access.redhat.com/documentation/en-us/red_hat_developer_hub/1.4/html-single/administration_guide_for_red_hat_developer_hub/index#assembly-rhdh-telemetry_admin-rhdh '
+    digest: b2b3a131f6ac2ef281ffbfe47997bc9d39d1c55586544970e34eea1f630bc654
+    home: https://redhat-developer.github.io/rhdh-chart/
+    icon: https://avatars.githubusercontent.com/u/117844786
+    keywords:
+    - backstage
+    - idp
+    - janus-idp
+    kubeVersion: '>= 1.25.0-0'
+    maintainers:
+    - name: Red Hat Developer Hub Team
+      url: https://github.com/redhat-developer/rhdh-chart
+    name: backstage
+    sources:
+    - https://github.com/redhat-developer/rhdh-chart
+    - https://github.com/janus-idp/backstage-showcase
+    type: application
+    urls:
+    - https://github.com/redhat-developer/rhdh-chart/releases/download/backstage-2.20.1/backstage-2.20.1.tgz
+    version: 2.20.1
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: support
+          url: https://github.com/redhat-developer/rhdh-chart/issues
+        - name: Chart Source
+          url: https://github.com/redhat-developer/rhdh-chart
+        - name: Default Image Source
+          url: https://github.com/janus-idp/backstage-showcase
+      charts.openshift.io/name: Backstage
+      charts.openshift.io/provider: Red Hat Developer Hub Team
+      charts.openshift.io/supportURL: https://github.com/redhat-developer/rhdh-chart/issues
+    apiVersion: v2
     created: "2024-08-29T00:14:11.735956444Z"
     dependencies:
     - name: common
@@ -3063,4 +3111,4 @@ entries:
     urls:
     - https://github.com/janus-idp/helm-backstage/releases/download/backstage-0.1.1/backstage-0.1.1.tgz
     version: 0.1.1
-generated: "2024-08-29T00:14:11.736269387Z"
+generated: "2024-10-24T14:27:52.538581842Z"

@@ -7,6 +7,12 @@ on:
       - rhdh-1.[0-9]+
       - 1.[0-9]+.x
       - release-1.[0-9]+
+  push:
+    branches:
+      - main
+      - rhdh-1.[0-9]+
+      - 1.[0-9]+.x
+      - release-1.[0-9]+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
@@ -54,7 +60,7 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          listChanged=$(ct list-changed --target-branch "${{ github.event.pull_request.base.ref }}")
+          listChanged=$(ct list-changed --target-branch "${{ github.event.pull_request.base.ref || 'test_branch' }}")
           if [[ -n "$listChanged" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             if grep 'charts/backstage' <<< "$listChanged"; then
@@ -145,7 +151,7 @@ jobs:
         run: |
           helm upgrade --install my-orchestrator-infra-chart \
             charts/orchestrator-infra/ \
-            --values ci/upstream-olm-values.yaml
+            --values charts/orchestrator-infra/ci/upstream-olm-values.yaml
           kubectl apply -f https://github.com/apache/incubator-kie-kogito-serverless-operator/releases/download/v1.43.1/operator.yaml
 
       - name: Run chart-testing (install)
@@ -155,5 +161,5 @@ jobs:
             --debug \
             --config ct-install.yaml \
             --upgrade \
-            --target-branch "${{ github.event.pull_request.base.ref }}" \
+            --target-branch "${{ github.event.pull_request.base.ref || 'test_branch' }}" \
             --helm-extra-set-args="--set upstream.backstage.image.tag=${{ matrix.version }} --set upstream.ingress.enabled=true --set global.host=rhdh.127.0.0.1.sslip.io"

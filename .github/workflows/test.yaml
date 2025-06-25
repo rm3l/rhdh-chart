@@ -54,9 +54,12 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --target-branch "${{ github.event.pull_request.base.ref }}")
-          if [[ -n "$changed" ]]; then
+          listChanged=$(ct list-changed --target-branch "${{ github.event.pull_request.base.ref }}")
+          if [[ -n "$listChanged" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            if grep 'charts/backstage' <<< "$listChanged"; then
+              echo "backstageChartChanged=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Add Helm Repositories
@@ -129,6 +132,21 @@ jobs:
           curl -L "https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${OLM_VERSION}/install.sh" -o install-olm.sh
           chmod +x install-olm.sh
           ./install-olm.sh "${OLM_VERSION}"
+
+      # The subscriptions installed by this chart are available only on OCP.
+      # We are installing the orchestrator-infra chart to get the related CRDs,
+      # but we still need to get the SonataFlow CRDs, hence the need to install the operator manually.
+      # TODO(rm3l): Remove this if we have an upstream counterpart installable via OLM
+      # NOTES:
+      # - Serverless 1.35 corresponds to Knative 1.18
+      # - Serverless Logic 1.35 corresponds to Sonataflow 1.43
+      - name: Install orchestrator-infra-chart as prerequisite for testing the Orchestrator flavor
+        if: steps.list-changed.outputs.backstageChartChanged == 'true'
+        run: |
+          helm upgrade --install my-orchestrator-infra-chart \
+            charts/orchestrator-infra/ \
+            --values ci/upstream-olm-values.yaml
+          kubectl apply -f https://github.com/apache/incubator-kie-kogito-serverless-operator/releases/download/v1.43.1/operator.yaml
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'

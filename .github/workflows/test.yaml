@@ -139,19 +139,21 @@ jobs:
           chmod +x install-olm.sh
           ./install-olm.sh "${OLM_VERSION}"
 
-      # The subscriptions installed by this chart are available only on OCP.
-      # We are installing the orchestrator-infra chart to get the related CRDs,
-      # but we still need to get the SonataFlow CRDs, hence the need to install the operator manually.
-      # TODO(rm3l): Remove this if we have an upstream counterpart installable via OLM
+      # https://issues.redhat.com/browse/RHIDP-7469 - minimal testing of the Orchestrator flavor.
+      # The Orchestrator flavor requires installing the orchestrator-infra chart as a prerequisite,
+      # but the subscriptions installed by this chart are available only on OCP.
+      # For the simple testing that we are doing here (only checking that the app starts and responds successfully),
+      # we need both the Knative and SonataFlow CRDs.
+      # TODO(rm3l): Remove this when there is an upstream counterpart installable via OLM.
       # NOTES:
       # - Serverless 1.35 corresponds to Knative 1.18
       # - Serverless Logic 1.35 corresponds to Sonataflow 1.43
-      - name: Install orchestrator-infra-chart as prerequisite for testing the Orchestrator flavor
+      - name: Install Knative and SonataFlow CRDs via the orchestrator-infra-chart as minimum prerequisite for testing the Orchestrator flavor
         if: steps.list-changed.outputs.backstageChartChanged == 'true'
         run: |
-          helm upgrade --install my-orchestrator-infra-chart \
-            charts/orchestrator-infra/ \
-            --values charts/orchestrator-infra/ci/upstream-olm-values.yaml
+          for crdDir in charts/orchestrator-infra/crds/*; do
+            kubectl apply -f "${crdDir}"
+          done
           kubectl apply -f https://github.com/apache/incubator-kie-kogito-serverless-operator/releases/download/v1.43.1/operator.yaml
 
       - name: Run chart-testing (install)

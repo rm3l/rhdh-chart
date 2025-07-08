@@ -1,0 +1,12 @@
+upstream:
+  backstage:
+    extraEnvVars:
+      any-unique-key-1:
+        name: LOG_LEVEL
+        value: 'debug'
+      HTTP_PROXY:
+        name: HTTP_PROXY
+        valueFrom:
+          secretKeyRef:
+            key: http-proxy
+            name: 'my-super-secret'

@@ -124,12 +124,14 @@ upstream:
       successThreshold: 1
       timeoutSeconds: 4
     extraEnvVars:
-      - name: BACKEND_SECRET
+      BACKEND_SECRET:
+        name: BACKEND_SECRET
         valueFrom:
           secretKeyRef:
             key: backend-secret
             name: '{{ include "janus-idp.backend-secret-name" $ }}'
-      - name: POSTGRESQL_ADMIN_PASSWORD
+      POSTGRESQL_ADMIN_PASSWORD:
+        name: POSTGRESQL_ADMIN_PASSWORD
         valueFrom:
           secretKeyRef:
             key: postgres-password

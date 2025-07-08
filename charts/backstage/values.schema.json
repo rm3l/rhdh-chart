@@ -2571,8 +2571,8 @@
                             "type": "array"
                         },
                         "extraEnvVars": {
-                            "default": [
-                                {
+                            "default": {
+                                "BACKEND_SECRET": {
                                     "name": "BACKEND_SECRET",
                                     "valueFrom": {
                                         "secretKeyRef": {
@@ -2581,7 +2581,7 @@
                                         }
                                     }
                                 },
-                                {
+                                "POSTGRESQL_ADMIN_PASSWORD": {
                                     "name": "POSTGRESQL_ADMIN_PASSWORD",
                                     "valueFrom": {
                                         "secretKeyRef": {
@@ -2590,16 +2590,18 @@
                                         }
                                     }
                                 }
-                            ],
+                            },
                             "examples": [
                                 [
                                     {
-                                        "name": "APP_CONFIG_backend_cache_store",
-                                        "value": "memory"
+                                        "APP_CONFIG_backend_cache_store": {
+                                            "name": "APP_CONFIG_backend_cache_store",
+                                            "value": "memory"
+                                        }
                                     }
                                 ]
                             ],
-                            "items": {
+                            "additionalProperties": {
                                 "description": "EnvVar represents an environment variable present in a Container.",
                                 "properties": {
                                     "name": {
@@ -2713,7 +2715,7 @@
                                 "type": "object"
                             },
                             "title": "Backstage container environment variables",
-                            "type": "array"
+                            "type": "object"
                         },
                         "extraEnvVarsCM": {
                             "default": [],

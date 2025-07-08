@@ -1,0 +1,22 @@
+upstream:
+  backstage:
+    extraEnvVars:
+      # Need to replicate all the defaults
+      - name: BACKEND_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: backend-secret
+            name: '{{ include "janus-idp.backend-secret-name" $ }}'
+      - name: POSTGRESQL_ADMIN_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            key: postgres-password
+            name: '{{- include "janus-idp.postgresql.secretName" . }}'
+      ## End defaults
+      - name: LOG_LEVEL
+        value: 'debug'
+      - name: HTTP_PROXY
+        valueFrom:
+          secretKeyRef:
+            key: http-proxy
+            name: 'my-super-secret'

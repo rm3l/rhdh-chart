@@ -5,6 +5,9 @@
 .idea
 
 # helm chart dependencies
-charts/*/charts/
+#charts/*/charts/
 **/charts/*.tgz
 output
+
+## Just for testing POC
+!/charts/backstage/charts/backstage

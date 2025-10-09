@@ -4556,7 +4556,7 @@
                                     "type": "string"
                                 },
                                 "pullPolicy": {
-                                    "default": "Always",
+                                    "default": "IfNotPresent",
                                     "description": "Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy",
                                     "enum": [
                                         "Always",
@@ -4620,7 +4620,7 @@
                                         }
                                     ],
                                     "image": "{{ include \"backstage.image\" . }}",
-                                    "imagePullPolicy": "Always",
+                                    "imagePullPolicy": "IfNotPresent",
                                     "name": "install-dynamic-plugins",
                                     "resources": {
                                         "limits": {

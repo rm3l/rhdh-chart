@@ -4590,7 +4590,7 @@
                                     "type": "string"
                                 },
                                 "repository": {
-                                    "default": "rhdh/rhdh-hub-rhel9",
+                                    "default": "rhdh-community/rhdh",
                                     "title": "Backstage image repository",
                                     "type": "string"
                                 },

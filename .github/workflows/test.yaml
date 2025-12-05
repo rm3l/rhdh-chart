@@ -52,6 +52,15 @@ jobs:
             fi
           fi
 
+      - name: Remove unnecessary files to free up disk space
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: endersonmenezes/free-disk-space@6c4664f43348c8c7011b53488d5ca65e9fc5cd1a # v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
       - name: Add Helm Repositories
         if: steps.list-changed.outputs.changed == 'true'
         run: |

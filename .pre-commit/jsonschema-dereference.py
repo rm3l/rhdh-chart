@@ -15,6 +15,10 @@ JSONSCHEMA_NAME = "values.schema.json"
 VALUES_FILE = "values.yaml"
 CHART_LOCK = "Chart.lock"
 
+DEFAULT_SKIP_PATHS = [
+    "charts/backstage/vendor",
+]
+
 def read_yaml(file_path: Path):
     """Open and load Chart.yaml file."""
     with open(file_path, "r", encoding="utf-8") as f:
@@ -62,9 +66,19 @@ def save(chart_dir: Path, my_schema: Any):
     with open(chart_dir / JSONSCHEMA_NAME, "w", encoding="utf-8") as f:
         json.dump(my_schema, f, indent=4, sort_keys=True)
 
-if __name__ == '__main__':
-    charts = [p.parent for p in Path(".").rglob(CHART_LOCK)]
+def should_skip(chart: Path, skip_paths: List[str]) -> bool:
+    for prefix in skip_paths:
+        if chart == Path(prefix) or Path(prefix) in chart.parents:
+            return True
+    return False
 
+if __name__ == '__main__':
+    all_charts = [p.parent for p in Path(".").rglob(CHART_LOCK)]
+    skipped = {c for c in all_charts if should_skip(c, DEFAULT_SKIP_PATHS)}
+    if skipped:
+        print(f"Skipping {len(skipped)} chart(s) matching skip list: {', '.join(str(c) for c in skipped)}")
+
+    charts = [c for c in all_charts if not should_skip(c, DEFAULT_SKIP_PATHS)]
     errors: List[BaseException] = []
     for chart in charts:
         try:

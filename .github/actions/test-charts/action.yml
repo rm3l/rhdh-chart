@@ -69,6 +69,7 @@ runs:
       run: |
         helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
         helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo add backstage https://backstage.github.io/charts
         helm repo update
 
     - name: Generate KinD Config

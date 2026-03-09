@@ -142,6 +142,8 @@ spec:
             {{- end }}
           {{- end }}
           env:
+            - name: XXX_SOME_ENV_VAR
+              value: "some value"
             - name: APP_CONFIG_backend_listen_port
               value: {{ .Values.backstage.containerPorts.backend | quote }}
             {{- if .Values.postgresql.enabled }}

@@ -13,7 +13,7 @@ from jinja2 import Template
 JSONSCHEMA_TEMPLATE_NAME = "values.schema.tmpl.json"
 JSONSCHEMA_NAME = "values.schema.json"
 VALUES_FILE = "values.yaml"
-CHART_LOCK = "Chart.lock"
+CHART_YAML = "Chart.yaml"
 
 DEFAULT_SKIP_PATHS = [
     "charts/backstage/vendor",
@@ -24,12 +24,20 @@ def read_yaml(file_path: Path):
     with open(file_path, "r", encoding="utf-8") as f:
         return yaml.load(f, Loader=Loader)
 
-def template_schema(chart_dir: Path, my_lock: Dict[str, Any]):
-    """Load values.schema.tmpl.json and template it via Jinja2."""
-    with open(chart_dir / JSONSCHEMA_TEMPLATE_NAME, "r", encoding="utf-8") as f:
+def template_schema(chart_dir: Path, my_chart_yaml: Dict[str, Any]):
+    """Load values.schema.tmpl.json and template it via Jinja2.
+
+    Returns None if the template file does not exist.
+    """
+    template_path = chart_dir / JSONSCHEMA_TEMPLATE_NAME
+    if not template_path.exists():
+        print(f"INFO: '{template_path}' not found; '{JSONSCHEMA_NAME}' will not be created or updated for '{chart_dir}'")
+        return None
+
+    with open(template_path, "r", encoding="utf-8") as f:
         my_schema_template = Template(f.read(), autoescape=True)
 
-    return json.loads(my_schema_template.render(my_lock))
+    return json.loads(my_schema_template.render(my_chart_yaml))
 
 def tidy_schema(my_schema: Any, my_values: Any):
     """Hack to support OCP Form view.
@@ -73,7 +81,7 @@ def should_skip(chart: Path, skip_paths: List[str]) -> bool:
     return False
 
 if __name__ == '__main__':
-    all_charts = [p.parent for p in Path(".").rglob(CHART_LOCK)]
+    all_charts = [p.parent for p in Path(".").rglob(CHART_YAML)]
     skipped = {c for c in all_charts if should_skip(c, DEFAULT_SKIP_PATHS)}
     if skipped:
         print(f"Skipping {len(skipped)} chart(s) matching skip list: {', '.join(str(c) for c in skipped)}")
@@ -82,9 +90,11 @@ if __name__ == '__main__':
     errors: List[BaseException] = []
     for chart in charts:
         try:
-            lock = read_yaml(chart / CHART_LOCK)
+            chart_yaml = read_yaml(chart / CHART_YAML)
             values = read_yaml(chart / VALUES_FILE)
-            schema_template = template_schema(chart, lock)
+            schema_template = template_schema(chart, chart_yaml)
+            if schema_template is None:
+                continue
             schema = jsonref.replace_refs(schema_template)
             schema = tidy_schema(schema, values)
 

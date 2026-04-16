@@ -36,6 +36,9 @@ git subtree pull --prefix charts/backstage/vendor/backstage upstream-backstage m
 
 It is important to use `--squash` to avoid pulling the entire commit history of the upstream chart repository.
 
+> [!CAUTION]
+> **Reviewing subtree syncs:** The subtree pull may silently overwrite RHDH-specific local changes to the vendored chart, even when there are no merge conflicts. This can happen because Git's merge algorithm may auto-resolve changes in favor of upstream. After each sync, carefully review the diff to ensure any local customizations (e.g., `.gitignore` exceptions, template modifications) are preserved. If local changes were lost, restore them manually before merging.
+
 *Note: If merge conflicts occur, resolve them in your editor, then `git add` and `git commit` the resolution as a normal merge.*
 
 **Important:** After any change to the dependency structure or version of the vendored chart, you must rebuild the lock file and local subchart dependencies:

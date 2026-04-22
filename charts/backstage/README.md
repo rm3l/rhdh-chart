@@ -1,7 +1,7 @@
 
 # RHDH Backstage Helm Chart for OpenShift
 
-![Version: 5.7.1](https://img.shields.io/badge/Version-5.7.1-informational?style=flat-square)
+![Version: 5.8.0](https://img.shields.io/badge/Version-5.8.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for deploying Red Hat Developer Hub, which is a Red Hat supported version of Backstage.
@@ -29,7 +29,7 @@ For the **Generally Available** version of this chart, see:
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add redhat-developer https://redhat-developer.github.io/rhdh-chart
 
-helm install my-backstage redhat-developer/backstage --version 5.7.1
+helm install my-backstage redhat-developer/backstage --version 5.8.0
 ```
 
 ## Introduction
@@ -174,6 +174,35 @@ Kubernetes: `>= 1.27.0-0`
 | global.dynamic.includes[0] | List of dynamic plugins included inside the `rhdh` container image, some of which are disabled by default. This file ONLY works with the `rhdh` container image. | string | `"dynamic-plugins.default.yaml"` |
 | global.dynamic.plugins | List of dynamic plugins, possibly overriding the plugins listed in `includes` files. Every item defines the plugin `package` as a [NPM package spec](https://docs.npmjs.com/cli/v10/using-npm/package-spec), an optional `pluginConfig` with plugin-specific backstage configuration, and an optional `disabled` flag to disable/enable a plugin listed in `includes` files. It also includes an `integrity` field that is used to verify the plugin package [integrity](https://w3c.github.io/webappsec-subresource-integrity/#integrity-metadata-description). | list | `[]` |
 | global.host | Custom hostname shorthand, overrides `global.clusterRouterBase`, `upstream.ingress.host`, `route.host`, and url values in `upstream.backstage.appConfig`. | string | `""` |
+| global.lightspeed | Built-in Lightspeed feature configuration. | object | Use Lightspeed compatible settings / configurations. |
+| global.lightspeed.configMaps[0].create | Whether to create this ConfigMap from the bundled source file. Set to false and provide `nameOverride` to use a pre-existing ConfigMap. | bool | `true` |
+| global.lightspeed.configMaps[0].nameOverride | Name of an existing ConfigMap to use instead. Required when `create` is false. | string | `""` |
+| global.lightspeed.configMaps[0].sourceFile | Bundled file used to populate the ConfigMap data when `create` is true. | string | `"lightspeed-stack.yaml"` |
+| global.lightspeed.configMaps[1].create | Whether to create this ConfigMap from the bundled source file. Set to false and provide `nameOverride` to use a pre-existing ConfigMap. | bool | `true` |
+| global.lightspeed.configMaps[1].nameOverride | Name of an existing ConfigMap to use instead. Required when `create` is false. | string | `""` |
+| global.lightspeed.configMaps[1].sourceFile | Bundled file used to populate the ConfigMap data when `create` is true. | string | `"config.yaml"` |
+| global.lightspeed.configMaps[2].create | Whether to create this ConfigMap from the bundled source file. Set to false and provide `nameOverride` to use a pre-existing ConfigMap. | bool | `true` |
+| global.lightspeed.configMaps[2].nameOverride | Name of an existing ConfigMap to use instead. Required when `create` is false. | string | `""` |
+| global.lightspeed.configMaps[2].sourceFile | Bundled file used to populate the ConfigMap data when `create` is true. | string | `"rhdh-profile.py"` |
+| global.lightspeed.enabled | Enable or disable the built-in Lightspeed feature. | bool | `true` |
+| global.lightspeed.initContainer.image | Full image reference for the Lightspeed RAG bootstrap init container. Override for disconnected environments. | string | `"quay.io/redhat-ai-dev/rag-content:release-1.9-lls-0.5.0-642c567fe10a62b5ff711654306b72912f341e05"` |
+| global.lightspeed.initContainer.resources | Resource requests/limits for the Lightspeed RAG bootstrap init container. | object | `{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}}` |
+| global.lightspeed.plugins | Lightspeed plugins and their configuration. Override package references for disconnected environments. | list | `[{"disabled":false,"package":"oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed:bs_1.45.3__1.4.0!red-hat-developer-hub-backstage-plugin-lightspeed","pluginConfig":{"dynamicPlugins":{"frontend":{"red-hat-developer-hub.backstage-plugin-lightspeed":{"dynamicRoutes":[{"importName":"LightspeedPage","path":"/lightspeed"}],"mountPoints":[{"importName":"LightspeedFAB","mountPoint":"application/listener"},{"importName":"LightspeedDrawerProvider","mountPoint":"application/provider"},{"config":{"id":"lightspeed"},"importName":"LightspeedDrawerStateExposer","mountPoint":"application/internal/drawer-state"},{"config":{"id":"lightspeed","priority":100},"importName":"LightspeedChatContainer","mountPoint":"application/internal/drawer-content"}],"translationResources":[{"importName":"lightspeedTranslations","module":"Alpha","ref":"lightspeedTranslationRef"}]}}}}},{"disabled":false,"package":"oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed-backend:bs_1.45.3__1.4.0!red-hat-developer-hub-backstage-plugin-lightspeed-backend"}]` |
+| global.lightspeed.ragVolume.emptyDir | `emptyDir` configuration for the RAG data volume. | object | `{}` |
+| global.lightspeed.ragVolume.initMountPath | Mount path inside the init container for seeding RAG data. | string | `"/rag-content"` |
+| global.lightspeed.ragVolume.mountPath | Mount path inside the sidecar container for serving RAG data. | string | `"/rag-content"` |
+| global.lightspeed.ragVolume.name | Name of the Kubernetes volume used for Lightspeed RAG data. | string | `"lightspeed-rag"` |
+| global.lightspeed.runtimeVolume.emptyDir | `emptyDir` configuration for the Lightspeed runtime data volume when `runtimeVolume.type=emptyDir`. | object | `{}` |
+| global.lightspeed.runtimeVolume.mountPath | Mount path inside the container for Lightspeed runtime storage. | string | `"/tmp"` |
+| global.lightspeed.runtimeVolume.name | Name of the Kubernetes volume used for writable Lightspeed runtime storage. | string | `"lightspeed-data"` |
+| global.lightspeed.runtimeVolume.persistentVolumeClaim | Existing PVC reference for the Lightspeed runtime data volume when `runtimeVolume.type=persistentVolumeClaim`. | object | `{}` |
+| global.lightspeed.runtimeVolume.type | Volume source used for writable Lightspeed runtime storage mounted at `/tmp`. Supported values: `emptyDir`, `persistentVolumeClaim`. | string | `"emptyDir"` |
+| global.lightspeed.secret.create | Whether to create a Lightspeed Secret from the bundled source file. | bool | `true` |
+| global.lightspeed.secret.name | Name of an existing Secret to use instead. Required when `create` is false. | string | `""` |
+| global.lightspeed.secret.optional | Whether the Secret reference is optional in the pod spec. | bool | `false` |
+| global.lightspeed.secret.sourceFile | Bundled file used to populate the Secret's `stringData` keys. | string | `"secret.yaml"` |
+| global.lightspeed.sidecar.image | Full image reference for the Lightspeed Core sidecar. Override for disconnected environments. | string | `"quay.io/lightspeed-core/lightspeed-stack:0.5.0"` |
+| global.lightspeed.sidecar.resources | Resource requests/limits for the Lightspeed Core sidecar. | object | `{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}}` |
 | nameOverride |  | string | `"developer-hub"` |
 | orchestrator.enabled |  | bool | `false` |
 | orchestrator.plugins | Orchestrator plugins and their configuration | list | `[{"disabled":false,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"disabled":false,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"disabled":false,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"disabled":false,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}]` |
@@ -303,6 +332,18 @@ upstream:
 The chart supports automatic plugin discovery through a catalog index OCI image. This is configured via `global.catalogIndex.image` (with `registry`, `repository`, and `tag` fields) and lets you use a pre-defined set of dynamic plugins.
 
 For detailed information on configuring the catalog index, including how to override the default image or use a private registry, see the [Catalog Index Configuration documentation](../../docs/catalog-index-configuration.md).
+
+### Lightspeed
+
+Use `global.lightspeed.enabled` to enable or disable the built-in Lightspeed feature.
+
+When enabled, the chart adds the default Lightspeed dynamic plugins, a RAG bootstrap init container, a Lightspeed Core sidecar listening on port `8080`, chart-generated ConfigMaps, a chart-generated Secret, and separate runtime and RAG data volumes. Override `global.lightspeed.plugins` for disconnected environments.
+
+Use `global.lightspeed.runtimeVolume` to change the writable `/tmp` runtime storage between `emptyDir` and an existing PVC reference. The chart mounts that volume at `/tmp` so both generated temp files and `/tmp/data` remain writable. The `/rag-content` volume stays chart-managed and `emptyDir`-backed because the RAG assets are repopulated by the init container on each Pod start.
+
+When using the built-in Lightspeed feature, do not also keep Lightspeed plugin packages in `global.dynamic.plugins`. Existing installations that previously configured Lightspeed there should remove those entries if the built-in defaults are sufficient, or move their custom package definitions to `global.lightspeed.plugins`; otherwise the rendered `dynamic-plugins.yaml` will contain duplicate Lightspeed plugin entries.
+
+The Lightspeed Core sidecar loads the chart-created Lightspeed Secret as environment variables. If you update that Secret outside of Helm, Kubernetes does not guarantee that the Backstage Pod restarts automatically. Use a no-op `helm upgrade` or manually restart the Backstage deployment after changing the secret data.
 
 ### Vanilla Kubernetes compatibility mode
 

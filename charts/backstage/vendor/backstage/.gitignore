@@ -11,4 +11,3 @@ charts/*/charts/*
 # RHDH: track vendored chart dependencies
 # Since this chart is vendored, we commit its dependencies rather than fetching them at install time
 !charts/*/charts/*.tgz
-

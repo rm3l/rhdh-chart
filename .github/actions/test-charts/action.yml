@@ -13,6 +13,10 @@ inputs:
     description: 'Install all charts instead of only changed ones'
     required: false
     default: 'false'
+  chart:
+    description: 'Specific chart to test (e.g., charts/backstage). When set, only this chart is tested.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -38,10 +42,16 @@ runs:
       id: list-changed
       shell: bash
       env:
+        INPUT_CHART: ${{ inputs.chart }}
         INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
         INPUT_ALL_CHARTS: ${{ inputs.all_charts }}
       run: |
-        if [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
+        if [[ -n "$INPUT_CHART" ]]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          if [[ "$INPUT_CHART" == "charts/backstage" ]]; then
+            echo "backstageChartChanged=true" >> "$GITHUB_OUTPUT"
+          fi
+        elif [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "backstageChartChanged=true" >> "$GITHUB_OUTPUT"
         else
@@ -158,6 +168,7 @@ runs:
       if: steps.list-changed.outputs.changed == 'true'
       shell: bash
       env:
+        INPUT_CHART: ${{ inputs.chart }}
         INPUT_EXTRA_HELM_ARGS: ${{ inputs.extra_helm_args }}
         INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
         INPUT_ALL_CHARTS: ${{ inputs.all_charts }}
@@ -181,7 +192,9 @@ runs:
           --target-branch "$INPUT_TARGET_BRANCH"
           --helm-extra-set-args="${EXTRA_ARGS[*]}"
         )
-        if [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
+        if [[ -n "$INPUT_CHART" ]]; then
+          CT_ARGS+=(--charts "$INPUT_CHART")
+        elif [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
           CT_ARGS+=(--all)
         fi
         ct install "${CT_ARGS[@]}"

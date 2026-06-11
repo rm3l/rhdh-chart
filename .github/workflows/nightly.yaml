@@ -11,8 +11,33 @@ concurrency:
 
 jobs:
 
+  discover-charts:
+    name: Discover charts
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.list.outputs.charts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: List charts
+        id: list
+        run: |
+          excluded=$(yq e '.excluded-charts[]' ct.yaml 2>/dev/null || true)
+          charts='[]'
+          for chart_dir in charts/*/; do
+            [[ ! -d "$chart_dir" ]] && continue
+            chart_name=$(basename "$chart_dir")
+            chart_path="${chart_dir%/}"
+            if ! echo "$excluded" | grep -qx "$chart_name"; then
+              charts=$(echo "$charts" | jq -c --arg c "$chart_path" '. + [$c]')
+            fi
+          done
+          echo "charts=$charts" >> "$GITHUB_OUTPUT"
+
   test-chart:
-    name: Nightly Test (${{ matrix.branch }})
+    needs: discover-charts
+    name: Nightly (${{ matrix.branch }} / ${{ matrix.chart }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,6 +47,7 @@ jobs:
           - release-1.10
           - release-1.9
           - release-1.8
+        chart: ${{ fromJson(needs.discover-charts.outputs.charts) }}
 
     steps:
       - name: Checkout
@@ -30,7 +56,20 @@ jobs:
           ref: ${{ matrix.branch }}
           fetch-depth: 0
 
+      - name: Check chart exists on branch
+        id: check
+        env:
+          CHART: ${{ matrix.chart }}
+        run: |
+          if [[ -d "$CHART" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Chart $CHART does not exist on branch ${{ matrix.branch }}, skipping"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compute image tag
+        if: steps.check.outputs.exists == 'true'
         id: image
         run: |
           if [[ "${{ matrix.branch }}" == "main" ]]; then
@@ -42,9 +81,28 @@ jobs:
         env:
           BRANCH: ${{ matrix.branch }}
 
+      # Exclude all charts except the target so that 'ct install --all' tests only
+      # the target chart. This ensures backward compatibility with release branches
+      # where the composite action does not yet have the 'chart' input.
+      - name: Restrict chart-testing to target chart
+        if: steps.check.outputs.exists == 'true'
+        env:
+          CHART: ${{ matrix.chart }}
+        run: |
+          target_name=$(basename "$CHART")
+          for chart_dir in charts/*/; do
+            [[ ! -d "$chart_dir" ]] && continue
+            chart_name=$(basename "$chart_dir")
+            if [[ "$chart_name" != "$target_name" ]]; then
+              yq e ".excluded-charts += [\"$chart_name\"]" -i ct-install.yaml
+            fi
+          done
+
       - name: Test charts
+        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/test-charts
         with:
           target_branch: ${{ matrix.branch }}
+          chart: ${{ matrix.chart }}
           all_charts: 'true'
-          extra_helm_args: '--set upstream.backstage.image.repository=rhdh-community/rhdh --set upstream.backstage.image.tag=${{ steps.image.outputs.tag }} --set upstream.backstage.image.pullPolicy=Always'
+          extra_helm_args: ${{ matrix.chart == 'charts/backstage' && format('--set upstream.backstage.image.repository=rhdh-community/rhdh --set upstream.backstage.image.tag={0} --set upstream.backstage.image.pullPolicy=Always', steps.image.outputs.tag) || '' }}

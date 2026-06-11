@@ -41,7 +41,7 @@ jobs:
             [[ ! -d "$chart" ]] && continue
             chart_name=$(basename "$chart")
             if ! echo "$excluded" | grep -qx "$chart_name"; then
-              charts=$(echo "$charts" | jq -c --arg c "$chart" '. + [$c]')
+              charts=$(echo "$charts" | jq -c --arg c "$chart_name" '. + [$c]')
             fi
           done <<< "$chart_dirs"
           echo "charts=$charts" >> "$GITHUB_OUTPUT"
@@ -69,9 +69,9 @@ jobs:
         uses: ./.github/actions/test-charts
         with:
           target_branch: ${{ github.event.pull_request.base.ref }}
-          chart: ${{ matrix.chart }}
+          chart: charts/${{ matrix.chart }}
           # The RHDH image tag is already pinned to a specific version for the 'release-1.y' branches.
-          extra_helm_args: ${{ matrix.chart == 'charts/backstage' && github.event.pull_request.base.ref == 'main' && format('--set upstream.backstage.image.repository={0} --set upstream.backstage.image.tag={1}', env.RHDH_IMAGE_REPOSITORY, env.RHDH_IMAGE_TAG) || '' }}
+          extra_helm_args: ${{ matrix.chart == 'backstage' && github.event.pull_request.base.ref == 'main' && format('--set upstream.backstage.image.repository={0} --set upstream.backstage.image.tag={1}', env.RHDH_IMAGE_REPOSITORY, env.RHDH_IMAGE_TAG) || '' }}
 
   # Aligning job name with the OpenShift CI config: https://github.com/openshift/release/blob/master/core-services/prow/02_config/redhat-developer/rhdh-chart/_prowconfig.yaml#L18
   status:

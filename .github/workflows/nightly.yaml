@@ -30,7 +30,7 @@ jobs:
             chart_name=$(basename "$chart_dir")
             chart_path="${chart_dir%/}"
             if ! echo "$excluded" | grep -qx "$chart_name"; then
-              charts=$(echo "$charts" | jq -c --arg c "$chart_path" '. + [$c]')
+              charts=$(echo "$charts" | jq -c --arg c "$chart_name" '. + [$c]')
             fi
           done
           echo "charts=$charts" >> "$GITHUB_OUTPUT"
@@ -59,7 +59,7 @@ jobs:
       - name: Check chart exists on branch
         id: check
         env:
-          CHART: ${{ matrix.chart }}
+          CHART: charts/${{ matrix.chart }}
         run: |
           if [[ -d "$CHART" ]]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -87,7 +87,7 @@ jobs:
       - name: Restrict chart-testing to target chart
         if: steps.check.outputs.exists == 'true'
         env:
-          CHART: ${{ matrix.chart }}
+          CHART: charts/${{ matrix.chart }}
         run: |
           target_name=$(basename "$CHART")
           for chart_dir in charts/*/; do
@@ -103,6 +103,6 @@ jobs:
         uses: ./.github/actions/test-charts
         with:
           target_branch: ${{ matrix.branch }}
-          chart: ${{ matrix.chart }}
+          chart: charts/${{ matrix.chart }}
           all_charts: 'true'
-          extra_helm_args: ${{ matrix.chart == 'charts/backstage' && format('--set upstream.backstage.image.repository=rhdh-community/rhdh --set upstream.backstage.image.tag={0} --set upstream.backstage.image.pullPolicy=Always', steps.image.outputs.tag) || '' }}
+          extra_helm_args: ${{ matrix.chart == 'backstage' && format('--set upstream.backstage.image.repository=rhdh-community/rhdh --set upstream.backstage.image.tag={0} --set upstream.backstage.image.pullPolicy=Always', steps.image.outputs.tag) || '' }}

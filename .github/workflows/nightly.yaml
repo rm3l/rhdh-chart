@@ -39,6 +39,7 @@ jobs:
     needs: discover-charts
     name: Nightly (${{ matrix.branch }} / ${{ matrix.chart }})
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -105,4 +106,5 @@ jobs:
           target_branch: ${{ matrix.branch }}
           chart: charts/${{ matrix.chart }}
           all_charts: 'true'
+          monitoring_heartbeat: ${{ vars.TEST_MONITORING_HEARTBEAT_ENABLED || 'false' }}
           extra_helm_args: ${{ matrix.chart == 'backstage' && format('--set upstream.backstage.image.repository=rhdh-community/rhdh --set upstream.backstage.image.tag={0} --set upstream.backstage.image.pullPolicy=Always', steps.image.outputs.tag) || '' }}

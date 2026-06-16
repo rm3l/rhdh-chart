@@ -51,6 +51,7 @@ jobs:
     if: needs.discover-charts.outputs.charts != '[]'
     name: Test (${{ matrix.chart }})
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -70,6 +71,7 @@ jobs:
         with:
           target_branch: ${{ github.event.pull_request.base.ref }}
           chart: charts/${{ matrix.chart }}
+          monitoring_heartbeat: ${{ vars.TEST_MONITORING_HEARTBEAT_ENABLED || 'false' }}
           # The RHDH image tag is already pinned to a specific version for the 'release-1.y' branches.
           extra_helm_args: ${{ matrix.chart == 'backstage' && github.event.pull_request.base.ref == 'main' && format('--set upstream.backstage.image.repository={0} --set upstream.backstage.image.tag={1}', env.RHDH_IMAGE_REPOSITORY, env.RHDH_IMAGE_TAG) || '' }}
 

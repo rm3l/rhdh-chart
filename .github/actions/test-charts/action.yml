@@ -17,6 +17,10 @@ inputs:
     description: 'Specific chart to test (e.g., charts/backstage). When set, only this chart is tested.'
     required: false
     default: ''
+  monitoring_heartbeat:
+    description: 'Enable background cluster monitoring (pod status + events every 30s) during chart tests'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -24,7 +28,7 @@ runs:
     - name: Set up Helm
       uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
       with:
-        version: v4.2.1
+        version: v3.21.1
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
@@ -172,20 +176,22 @@ runs:
         INPUT_EXTRA_HELM_ARGS: ${{ inputs.extra_helm_args }}
         INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
         INPUT_ALL_CHARTS: ${{ inputs.all_charts }}
+        INPUT_MONITORING_HEARTBEAT: ${{ inputs.monitoring_heartbeat }}
       run: |
-        # Monitor cluster state in background while ct runs
-        (
-          while true; do
-            echo "=== $(date -u '+%Y-%m-%dT%H:%M:%SZ') === Pod status ==="
-            kubectl get pods -A --no-headers | grep -v 'Completed\|Succeeded' || true
-            echo "=== Recent events ==="
-            kubectl get events -A --sort-by='.lastTimestamp' --no-headers 2>/dev/null | tail -15 || true
-            echo "---"
-            sleep 30
-          done
-        ) &
-        MONITOR_PID=$!
-        trap 'kill $MONITOR_PID 2>/dev/null || true' EXIT
+        if [[ "$INPUT_MONITORING_HEARTBEAT" == "true" ]]; then
+          (
+            while true; do
+              echo "=== $(date -u '+%Y-%m-%dT%H:%M:%SZ') === Pod status ==="
+              kubectl get pods -A --no-headers || true
+              echo "=== Recent events ==="
+              kubectl get events -A --sort-by='.lastTimestamp' --no-headers 2>/dev/null | tail -15 || true
+              echo "---"
+              sleep 30
+            done
+          ) &
+          MONITOR_PID=$!
+          trap 'kill $MONITOR_PID 2>/dev/null || true' EXIT
+        fi
 
         EXTRA_ARGS=()
         if [[ -z "$INPUT_CHART" || "$INPUT_CHART" == "charts/backstage" ]]; then

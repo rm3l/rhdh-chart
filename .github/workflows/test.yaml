@@ -82,8 +82,9 @@ jobs:
     steps:
       - name: Check test results
         run: |
-          if [[ "${{ needs.test-chart.result }}" == "failure" ]]; then
-            echo "One or more chart tests failed."
+          result="${{ needs.test-chart.result }}"
+          if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+            echo "Chart tests did not succeed (result: $result)."
             exit 1
           fi
           echo "All chart tests passed (or no charts to test)."

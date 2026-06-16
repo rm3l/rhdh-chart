@@ -28,12 +28,25 @@ jobs:
         env:
           TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
-          changed_files=$(git diff --name-only "origin/${TARGET_BRANCH}"...HEAD -- charts/)
-          if [[ -z "$changed_files" ]]; then
-            echo "charts=[]" >> "$GITHUB_OUTPUT"
-            exit 0
+          ci_changed=$(git diff --name-only "origin/${TARGET_BRANCH}"...HEAD -- .github/actions/test-charts/ .github/workflows/test.yaml ct.yaml ct-install.yaml)
+          if [[ -n "$ci_changed" ]]; then
+            echo "CI files changed — testing all charts"
+            all_charts=true
+          else
+            all_charts=false
           fi
-          chart_dirs=$(echo "$changed_files" | cut -d'/' -f1-2 | sort -u)
+
+          if [[ "$all_charts" == "true" ]]; then
+            chart_dirs=$(find charts -mindepth 1 -maxdepth 1 -type d)
+          else
+            changed_files=$(git diff --name-only "origin/${TARGET_BRANCH}"...HEAD -- charts/)
+            if [[ -z "$changed_files" ]]; then
+              echo "charts=[]" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            chart_dirs=$(echo "$changed_files" | cut -d'/' -f1-2 | sort -u)
+          fi
+
           excluded=$(yq e '.excluded-charts[]' ct.yaml 2>/dev/null || true)
           charts='[]'
           while IFS= read -r chart; do

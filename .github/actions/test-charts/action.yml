@@ -164,20 +164,6 @@ runs:
         done
         kubectl create -f "https://github.com/apache/incubator-kie-tools/releases/download/${SONATAFLOW_OPERATOR_VERSION}/apache-kie-${SONATAFLOW_OPERATOR_VERSION}-incubating-sonataflow-operator.yaml"
 
-    - name: Start cluster monitoring
-      if: steps.list-changed.outputs.changed == 'true'
-      shell: bash
-      run: |
-        while true; do
-          echo "=== $(date -u '+%Y-%m-%dT%H:%M:%SZ') === Pod status ==="
-          kubectl get pods -A --no-headers | grep -v 'Completed\|Succeeded' || true
-          echo "=== Recent events ==="
-          kubectl get events -A --sort-by='.lastTimestamp' --no-headers 2>/dev/null | tail -15 || true
-          echo "---"
-          sleep 30
-        done &
-        echo "monitor_pid=$!" >> "$GITHUB_ENV"
-
     - name: Run chart-testing (install)
       if: steps.list-changed.outputs.changed == 'true'
       shell: bash
@@ -187,6 +173,20 @@ runs:
         INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
         INPUT_ALL_CHARTS: ${{ inputs.all_charts }}
       run: |
+        # Monitor cluster state in background while ct runs
+        (
+          while true; do
+            echo "=== $(date -u '+%Y-%m-%dT%H:%M:%SZ') === Pod status ==="
+            kubectl get pods -A --no-headers | grep -v 'Completed\|Succeeded' || true
+            echo "=== Recent events ==="
+            kubectl get events -A --sort-by='.lastTimestamp' --no-headers 2>/dev/null | tail -15 || true
+            echo "---"
+            sleep 30
+          done
+        ) &
+        MONITOR_PID=$!
+        trap 'kill $MONITOR_PID 2>/dev/null || true' EXIT
+
         EXTRA_ARGS=()
         if [[ -z "$INPUT_CHART" || "$INPUT_CHART" == "charts/backstage" ]]; then
           EXTRA_ARGS+=(
@@ -215,11 +215,3 @@ runs:
           CT_ARGS+=(--all)
         fi
         ct install "${CT_ARGS[@]}"
-
-    - name: Stop cluster monitoring
-      if: always() && steps.list-changed.outputs.changed == 'true'
-      shell: bash
-      run: |
-        if [[ -n "${monitor_pid:-}" ]]; then
-          kill "$monitor_pid" 2>/dev/null || true
-        fi

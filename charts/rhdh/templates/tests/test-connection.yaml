@@ -9,6 +9,7 @@ metadata:
   annotations:
     helm.sh/hook: test
 spec:
+  automountServiceAccountToken: false
   containers:
     - name: curl
       securityContext:
@@ -20,9 +21,11 @@ spec:
         requests:
           cpu: 10m
           memory: 20Mi
+          ephemeral-storage: 10Mi
         limits:
           cpu: 10m
           memory: 20Mi
+          ephemeral-storage: 10Mi
       livenessProbe:
         exec:
           command:

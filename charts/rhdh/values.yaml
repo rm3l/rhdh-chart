@@ -479,5 +479,5 @@ test:
   image:
     registry: quay.io
     repository: curl/curl
-    tag: latest
+    tag: "8.9.1"
   injectTestNpmrcSecret: false

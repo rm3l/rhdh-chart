@@ -10,7 +10,7 @@ The telemetry data collection feature is enabled by default. Red Hat Developer H
 
 **Homepage:** <https://red.ht/rhdh>
 
-> **DEPRECATED:** Starting with RHDH 2.y, this chart is deprecated in favor of the new [`redhat-developer-hub`](../rhdh/) chart, which owns all Kubernetes templates directly and no longer depends on the upstream Backstage subchart. See the [upgrade guide](../rhdh/README.md#upgrading-from-the-backstage-chart-rhdh-1y) for migration instructions. This chart will continue to receive critical fixes for existing RHDH 1.y releases but no new features.
+> **DEPRECATED:** Starting with RHDH 2.y, this chart is deprecated in favor of the new [`redhat-developer-hub`](../rhdh/) chart, which owns all Kubernetes templates directly and no longer depends on the upstream Backstage subchart. See the [upgrade guide](../rhdh/README.md#upgrading-from-the-backstage-chart-rhdh-1y) for migration instructions. This chart will continue to receive critical fixes on the supported `release-1.y` branches but no new features.
 
 ## Productized RHDH
 

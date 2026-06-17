@@ -255,13 +255,27 @@ dynamicPlugins:
   plugins: []
 
 # -- Catalog index configuration for automatic plugin discovery.
+# -- Catalog index configuration for automatic plugin discovery.
 catalogIndex:
   image:
     registry: quay.io
     repository: rhdh/plugin-catalog-index
     tag: "1.10"
-  # -- Extra catalog index images for additional plugin discovery.
+    digest: ""
+  # -- Extra catalog index images for additional plugin discovery in the Extensions UI.
+  # Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional.
+  # Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling).
+  # @default -- `[]`
   extraImages: []
+  # - name: community
+  #   registry: ghcr.io
+  #   repository: redhat-developer/rhdh-plugin-community-index
+  #   tag: "1.10"
+  #   digest: ""
+  # - registry: my-registry.example.com
+  #   repository: my-org/my-rhdh-internal-plugin-catalog
+  #   tag: "1.2.3"
+  #   digest: ""
 
 # -- Built-in Lightspeed AI feature configuration.
 lightspeed:
@@ -400,6 +414,7 @@ postgresql:
     registry: quay.io
     repository: fedora/postgresql-15
     tag: latest
+    digest: ""
   auth:
     secretKeys:
       adminPasswordKey: postgres-password
@@ -502,4 +517,5 @@ test:
     registry: quay.io
     repository: curl/curl
     tag: "8.9.1"
+    digest: ""
   injectTestNpmrcSecret: false

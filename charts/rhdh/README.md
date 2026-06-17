@@ -183,8 +183,8 @@ Kubernetes: `>= 1.31.0-0`
 | auth.backend.existingSecret | Use an existing secret instead of generating one. | string | `""` |
 | auth.backend.value | Use a specific value instead of generating one. | string | `""` |
 | autoscaling | Horizontal Pod Autoscaler configuration. | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` |
-| catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10"}}` |
-| catalogIndex.extraImages | Extra catalog index images for additional plugin discovery. | list | `[]` |
+| catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10"}}` |
+| catalogIndex.extraImages | Extra catalog index images for additional plugin discovery in the Extensions UI. Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional. Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling). | list | `[]` |
 | clusterRouterBase | Cluster router base domain used to auto-generate the hostname. | string | `"apps.example.com"` |
 | command | Override the container command. | list | `[]` |
 | commonAnnotations | Annotations applied to ALL chart resources. | object | `{}` |
@@ -223,7 +223,7 @@ Kubernetes: `>= 1.31.0-0`
 | podDisruptionBudget | Pod Disruption Budget configuration. | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` |
 | podLabels | Labels to add to the pod. | object | `{}` |
 | podSecurityContext | Pod-level security context. | object | `{}` |
-| postgresql | Built-in PostgreSQL database (bitnami subchart). | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"registry":"quay.io","repository":"fedora/postgresql-15","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"serviceBindings":{"enabled":true}}` |
+| postgresql | Built-in PostgreSQL database (bitnami subchart). | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"fedora/postgresql-15","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"serviceBindings":{"enabled":true}}` |
 | readinessProbe | Readiness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/readiness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":2,"timeoutSeconds":4}` |
 | replicaCount | Number of desired pods. | int | `1` |
 | resources | Resource requests and limits for the main RHDH container. | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` |
@@ -236,7 +236,7 @@ Kubernetes: `>= 1.31.0-0`
 | serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |
-| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` |
+| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` |
 | tolerations |  | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
 | volumeMounts | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. | list | `[]` |

@@ -86,9 +86,31 @@
             "properties": {
                 "extraImages": {
                     "default": [],
+                    "examples": [
+                        [
+                            {
+                                "digest": "",
+                                "name": "community",
+                                "registry": "ghcr.io",
+                                "repository": "redhat-developer/rhdh-plugin-community-index",
+                                "tag": "1.10"
+                            },
+                            {
+                                "digest": "",
+                                "registry": "my-registry.example.com",
+                                "repository": "my-org/my-rhdh-internal-plugin-catalog",
+                                "tag": "1.2.3"
+                            }
+                        ]
+                    ],
                     "items": {
                         "additionalProperties": false,
                         "properties": {
+                            "digest": {
+                                "default": "",
+                                "title": "Overrides the extra catalog index image tag with an image digest.",
+                                "type": "string"
+                            },
                             "name": {
                                 "pattern": "^[A-Za-z0-9._-]+$",
                                 "title": "Optional name for the extra catalog index image.",
@@ -120,6 +142,11 @@
                 "image": {
                     "additionalProperties": false,
                     "properties": {
+                        "digest": {
+                            "default": "",
+                            "title": "Overrides the catalog index image tag with an image digest.",
+                            "type": "string"
+                        },
                         "registry": {
                             "default": "quay.io",
                             "title": "Catalog index image registry.",
@@ -1407,6 +1434,11 @@
                 "image": {
                     "additionalProperties": false,
                     "properties": {
+                        "digest": {
+                            "default": "",
+                            "title": "Overrides the test pod image tag with an image digest.",
+                            "type": "string"
+                        },
                         "registry": {
                             "default": "quay.io",
                             "title": "Registry to use for the test pod image.",

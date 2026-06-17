@@ -634,6 +634,11 @@
                             "title": "Catalog index image tag.",
                             "type": "string",
                             "default": "1.10"
+                        },
+                        "digest": {
+                            "title": "Overrides the catalog index image tag with an image digest.",
+                            "type": "string",
+                            "default": ""
                         }
                     }
                 },
@@ -662,9 +667,31 @@
                             "tag": {
                                 "title": "Extra catalog index image tag.",
                                 "type": "string"
+                            },
+                            "digest": {
+                                "title": "Overrides the extra catalog index image tag with an image digest.",
+                                "type": "string",
+                                "default": ""
                             }
                         }
-                    }
+                    },
+                    "examples": [
+                        [
+                            {
+                                "name": "community",
+                                "registry": "ghcr.io",
+                                "repository": "redhat-developer/rhdh-plugin-community-index",
+                                "tag": "1.10",
+                                "digest": ""
+                            },
+                            {
+                                "registry": "my-registry.example.com",
+                                "repository": "my-org/my-rhdh-internal-plugin-catalog",
+                                "tag": "1.2.3",
+                                "digest": ""
+                            }
+                        ]
+                    ]
                 }
             }
         },
@@ -1162,7 +1189,12 @@
                         "tag": {
                             "title": "Tag to use for the test pod image.",
                             "type": "string",
-                            "default": "latest"
+                            "default": "8.9.1"
+                        },
+                        "digest": {
+                            "title": "Overrides the test pod image tag with an image digest.",
+                            "type": "string",
+                            "default": ""
                         }
                     }
                 },

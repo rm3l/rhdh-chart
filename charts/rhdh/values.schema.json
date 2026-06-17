@@ -309,6 +309,35 @@
             "title": "Override the full resource name.",
             "type": "string"
         },
+        "global": {
+            "properties": {
+                "defaultStorageClass": {
+                    "default": "",
+                    "title": "Global default StorageClass for PVCs.",
+                    "type": "string"
+                },
+                "imagePullSecrets": {
+                    "default": [],
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "title": "Global Docker registry secret names.",
+                    "type": "array"
+                },
+                "imageRegistry": {
+                    "default": "",
+                    "title": "Global Docker image registry.",
+                    "type": "string"
+                }
+            },
+            "title": "Global parameters shared with bitnami subcharts.",
+            "type": "object"
+        },
         "host": {
             "default": "",
             "title": "Custom hostname. Overrides clusterRouterBase for URL generation.",
@@ -490,7 +519,12 @@
                         "-c"
                     ],
                     "env": [],
-                    "image": "quay.io/redhat-ai-dev/rag-content:release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3",
+                    "image": {
+                        "digest": "",
+                        "registry": "quay.io",
+                        "repository": "redhat-ai-dev/rag-content",
+                        "tag": "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
+                    },
                     "imagePullPolicy": "IfNotPresent",
                     "name": "lightspeed-rag-init",
                     "resources": {
@@ -551,7 +585,12 @@
                     "command": [],
                     "containerPort": 8080,
                     "env": [],
-                    "image": "quay.io/lightspeed-core/lightspeed-stack:0.5.1",
+                    "image": {
+                        "digest": "",
+                        "registry": "quay.io",
+                        "repository": "lightspeed-core/lightspeed-stack",
+                        "tag": "0.5.1"
+                    },
                     "imagePullPolicy": "IfNotPresent",
                     "name": "lightspeed-core",
                     "portName": "http-lightspeed",
@@ -1368,7 +1407,7 @@
                             "type": "string"
                         },
                         "tag": {
-                            "default": "latest",
+                            "default": "8.9.1",
                             "title": "Tag to use for the test pod image.",
                             "type": "string"
                         }

@@ -4,6 +4,35 @@
     "type": "object",
     "title": "Red Hat Developer Hub Helm Chart Values",
     "properties": {
+        "global": {
+            "title": "Global parameters shared with bitnami subcharts.",
+            "type": "object",
+            "properties": {
+                "imageRegistry": {
+                    "title": "Global Docker image registry.",
+                    "type": "string",
+                    "default": ""
+                },
+                "imagePullSecrets": {
+                    "title": "Global Docker registry secret names.",
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "defaultStorageClass": {
+                    "title": "Global default StorageClass for PVCs.",
+                    "type": "string",
+                    "default": ""
+                }
+            }
+        },
         "replicaCount": {
             "title": "Number of desired pods.",
             "type": "integer",

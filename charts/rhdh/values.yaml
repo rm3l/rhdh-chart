@@ -1,5 +1,14 @@
 # Default values for redhat-developer-hub.
 
+# -- Global parameters shared with bitnami subcharts (postgresql, common).
+global:
+  # -- Global Docker image registry. Overrides per-image registries for all containers.
+  imageRegistry: ""
+  # -- Global Docker registry secret names.
+  imagePullSecrets: []
+  # -- Global default StorageClass for PVCs.
+  defaultStorageClass: ""
+
 # -- Number of desired pods.
 replicaCount: 1
 
@@ -12,7 +21,7 @@ image:
   # -- Overrides the image tag with an image digest.
   digest: ""
 
-# -- Secrets for pulling images from private registries.
+# -- Secrets for pulling images from private registries (merged with global.imagePullSecrets).
 imagePullSecrets: []
 # -- Override the chart name used in resource naming.
 nameOverride: ""
@@ -297,7 +306,11 @@ lightspeed:
     sourceFile: secret.yaml
   initContainer:
     name: lightspeed-rag-init
-    image: quay.io/redhat-ai-dev/rag-content:release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3
+    image:
+      registry: quay.io
+      repository: redhat-ai-dev/rag-content
+      tag: release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3
+      digest: ""
     imagePullPolicy: IfNotPresent
     command:
       - sh
@@ -328,7 +341,11 @@ lightspeed:
         type: "RuntimeDefault"
   sidecar:
     name: lightspeed-core
-    image: quay.io/lightspeed-core/lightspeed-stack:0.5.1
+    image:
+      registry: quay.io
+      repository: lightspeed-core/lightspeed-stack
+      tag: "0.5.1"
+      digest: ""
     imagePullPolicy: IfNotPresent
     portName: http-lightspeed
     containerPort: 8080

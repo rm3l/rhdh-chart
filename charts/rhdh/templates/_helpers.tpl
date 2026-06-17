@@ -65,35 +65,48 @@ Create the name of the service account to use.
 {{- end }}
 
 {{/*
-Return the backstage image string (registry/repository:tag or @digest).
+Return the backstage image string, respecting global.imageRegistry.
 */}}
 {{- define "rhdh.image" -}}
-{{- $registry := .Values.image.registry -}}
-{{- $repository := .Values.image.repository -}}
-{{- $tag := .Values.image.tag -}}
-{{- $digest := .Values.image.digest -}}
-{{- if $digest -}}
-  {{- printf "%s/%s@%s" $registry $repository $digest -}}
-{{- else -}}
-  {{- printf "%s/%s:%s" $registry $repository $tag -}}
-{{- end -}}
+{{- include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) -}}
 {{- end -}}
 
 {{/*
 Return an image reference from a value that may be a string or a map with registry/repository/tag fields.
+When the value is a map, global.imageRegistry is applied via the bitnami common helper.
 */}}
 {{- define "rhdh.image.render" -}}
 {{- if kindIs "string" .image -}}
   {{- .image -}}
 {{- else -}}
-  {{- $registry := default "" .image.registry -}}
-  {{- $repository := default "" .image.repository -}}
-  {{- $tag := default "latest" .image.tag -}}
-  {{- if $registry -}}
-    {{- printf "%s/%s:%s" $registry $repository $tag -}}
+  {{- include "common.images.image" (dict "imageRoot" (.image | toYaml | fromYaml) "global" .global) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Merge global.imagePullSecrets and imagePullSecrets into a single imagePullSecrets block.
+*/}}
+{{- define "rhdh.imagePullSecrets" -}}
+{{- $secrets := list -}}
+{{- range ((.Values.global).imagePullSecrets) -}}
+  {{- if kindIs "map" . -}}
+    {{- $secrets = append $secrets .name -}}
   {{- else -}}
-    {{- printf "%s:%s" $repository $tag -}}
+    {{- $secrets = append $secrets . -}}
   {{- end -}}
+{{- end -}}
+{{- range .Values.imagePullSecrets -}}
+  {{- if kindIs "map" . -}}
+    {{- $secrets = append $secrets .name -}}
+  {{- else -}}
+    {{- $secrets = append $secrets . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $secrets }}
+imagePullSecrets:
+  {{- range $secrets | uniq }}
+  - name: {{ . }}
+  {{- end }}
 {{- end -}}
 {{- end -}}
 

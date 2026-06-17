@@ -333,6 +333,17 @@
                     "default": "",
                     "title": "Global Docker image registry.",
                     "type": "string"
+                },
+                "security": {
+                    "properties": {
+                        "allowInsecureImages": {
+                            "default": true,
+                            "title": "Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true. Must be true when using a non-bitnami PostgreSQL image.",
+                            "type": "boolean"
+                        }
+                    },
+                    "title": "Global security settings for bitnami subcharts.",
+                    "type": "object"
                 }
             },
             "title": "Global parameters shared with bitnami subcharts.",

@@ -30,6 +30,17 @@
                     "title": "Global default StorageClass for PVCs.",
                     "type": "string",
                     "default": ""
+                },
+                "security": {
+                    "title": "Global security settings for bitnami subcharts.",
+                    "type": "object",
+                    "properties": {
+                        "allowInsecureImages": {
+                            "title": "Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true. Must be true when using a non-bitnami PostgreSQL image.",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
                 }
             }
         },

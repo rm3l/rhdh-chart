@@ -169,7 +169,7 @@ Kubernetes: `>= 1.31.0-0`
 | Repository | Name | Version |
 |------------|------|---------|
 | https://charts.bitnami.com/bitnami | common | 2.40.0 |
-| oci://registry-1.docker.io/bitnamicharts | postgresql | 12.10.0 |
+| oci://registry-1.docker.io/bitnamicharts | postgresql | 18.7.5 |
 
 ## Values
 
@@ -199,10 +199,11 @@ Kubernetes: `>= 1.31.0-0`
 | envFrom | ConfigMaps and Secrets to inject as environment variables via envFrom. | object | `{"configMaps":[],"secrets":[]}` |
 | extraAppConfig | Additional app-config files from existing ConfigMaps. | list | `[]` |
 | fullnameOverride | Override the full resource name. | string | `""` |
-| global | Global parameters shared with bitnami subcharts (postgresql, common). | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":""}` |
+| global | Global parameters shared with bitnami subcharts (postgresql, common). | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":"","security":{"allowInsecureImages":true}}` |
 | global.defaultStorageClass | Global default StorageClass for PVCs. | string | `""` |
 | global.imagePullSecrets | Global Docker registry secret names. | list | `[]` |
 | global.imageRegistry | Global Docker image registry. Overrides per-image registries for all containers. | string | `""` |
+| global.security.allowInsecureImages | Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true; does not affect the RHDH or Lightspeed images. Must be true when using a non-bitnami PostgreSQL image (including the Red Hat secured image used in the downstream build). | bool | `true` |
 | host | Custom hostname. Overrides clusterRouterBase for URL generation. | string | `""` |
 | hostAliases | Host aliases for /etc/hosts entries. | list | `[]` |
 | httpRoute | Gateway API HTTPRoute configuration. | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` |

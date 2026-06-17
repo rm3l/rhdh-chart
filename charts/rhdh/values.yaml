@@ -8,6 +8,11 @@ global:
   imagePullSecrets: []
   # -- Global default StorageClass for PVCs.
   defaultStorageClass: ""
+  security:
+    # -- Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true;
+    # does not affect the RHDH or Lightspeed images. Must be true when using a non-bitnami PostgreSQL image
+    # (including the Red Hat secured image used in the downstream build).
+    allowInsecureImages: true
 
 # -- Number of desired pods.
 replicaCount: 1

@@ -31,7 +31,7 @@ dependencies:
     version: "2.40.0"
   - name: postgresql
     repository: oci://registry-1.docker.io/bitnamicharts
-    version: "12.10.0"
+    version: "18.7.5"
     condition: postgresql.enabled
 keywords:
   - backstage

@@ -6,9 +6,9 @@
 
 A Helm chart for deploying Red Hat Developer Hub, which is a Red Hat supported version of Backstage.
 
-The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html-single/telemetry_data_collection_and_analysis/index
+The telemetry data collection feature is enabled by default. Red Hat Developer Hub sends telemetry data to Red Hat by using the `backstage-plugin-analytics-provider-segment` plugin. To disable this and to learn what data is being collected, see https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.10/html-single/telemetry_data_collection_and_analysis/index
 
-**Homepage:** <https://red.ht/rhdh>
+**Homepage:** <https://developers.redhat.com/products/rhdh>
 
 ## Productized RHDH
 
@@ -22,6 +22,13 @@ For the **Generally Available** version of this chart, see:
 | Name | Email | Url |
 | ---- | ------ | --- |
 | Red Hat |  | <https://redhat.com> |
+
+## Source Code
+
+* <https://github.com/redhat-developer/rhdh-chart/tree/main/charts/rhdh>
+* <https://github.com/redhat-developer/rhdh>
+* <https://github.com/redhat-developer/rhdh-plugins>
+* <https://github.com/redhat-developer/rhdh-plugin-export-overlays>
 
 ## TL;DR
 
@@ -157,7 +164,7 @@ If you are upgrading from the legacy `backstage` chart (used in RHDH 1.y), the n
 
 ## Requirements
 
-Kubernetes: `>= 1.27.0-0`
+Kubernetes: `>= 1.31.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|

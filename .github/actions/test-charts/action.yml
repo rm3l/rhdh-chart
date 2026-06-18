@@ -203,6 +203,16 @@ runs:
             "--set upstream.backstage.podSecurityContext.runAsGroup=1001"
             "--set upstream.backstage.podSecurityContext.fsGroup=1001"
           )
+        elif [[ "$INPUT_CHART" == "charts/rhdh" ]]; then
+          # On vanilla K8s (KinD), there is no SCC to assign a common UID.
+          # Set fsGroup so shared volumes (e.g. RAG data) are group-writable
+          # across init containers and sidecars that may run as different UIDs.
+          EXTRA_ARGS+=(
+            "--set route.enabled=false"
+            "--set podSecurityContext.runAsUser=1001"
+            "--set podSecurityContext.runAsGroup=1001"
+            "--set podSecurityContext.fsGroup=1001"
+          )
         fi
         if [[ -n "$INPUT_EXTRA_HELM_ARGS" ]]; then
           IFS=' ' read -ra ADDITIONAL_ARGS <<< "$INPUT_EXTRA_HELM_ARGS"

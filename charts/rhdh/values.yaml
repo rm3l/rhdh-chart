@@ -198,7 +198,26 @@ diagnosticMode:
     - infinity
 
 # -- Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.
-appConfig: {}
+# @default -- Default config with base URLs, CORS, database connection, and backend auth.
+appConfig:
+  auth:
+    providers: {}
+  app:
+    baseUrl: 'https://{{- include "rhdh.hostname" . }}'
+  backend:
+    baseUrl: 'https://{{- include "rhdh.hostname" . }}'
+    cors:
+      origin: 'https://{{- include "rhdh.hostname" . }}'
+    database:
+      connection:
+        password: ${POSTGRESQL_ADMIN_PASSWORD}
+        user: postgres
+    auth:
+      externalAccess:
+        - type: legacy
+          options:
+            subject: legacy-default-config
+            secret: ${BACKEND_SECRET}
 
 # -- Additional app-config files from existing ConfigMaps.
 extraAppConfig: []

@@ -176,7 +176,7 @@ Kubernetes: `>= 1.31.0-0`
 | Key | Description | Type | Default |
 |-----|-------------|------|---------|
 | affinity |  | object | `{}` |
-| appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | `{}` |
+| appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | Default config with base URLs, CORS, database connection, and backend auth. |
 | args | Additional arguments for the backstage container. System arguments (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically. | list | `[]` |
 | auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` |
 | auth.backend.enabled | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. | bool | `true` |

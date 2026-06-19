@@ -7,7 +7,37 @@
             "type": "object"
         },
         "appConfig": {
-            "default": {},
+            "default": {
+                "app": {
+                    "baseUrl": "https://{{- include \"rhdh.hostname\" . }}"
+                },
+                "auth": {
+                    "providers": {}
+                },
+                "backend": {
+                    "auth": {
+                        "externalAccess": [
+                            {
+                                "options": {
+                                    "secret": "${BACKEND_SECRET}",
+                                    "subject": "legacy-default-config"
+                                },
+                                "type": "legacy"
+                            }
+                        ]
+                    },
+                    "baseUrl": "https://{{- include \"rhdh.hostname\" . }}",
+                    "cors": {
+                        "origin": "https://{{- include \"rhdh.hostname\" . }}"
+                    },
+                    "database": {
+                        "connection": {
+                            "password": "${POSTGRESQL_ADMIN_PASSWORD}",
+                            "user": "postgres"
+                        }
+                    }
+                }
+            },
             "title": "Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.",
             "type": "object"
         },

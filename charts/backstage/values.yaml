@@ -9,7 +9,7 @@ global:
       - "dynamic-plugins.default.yaml"
     # -- List of dynamic plugins, possibly overriding the plugins listed in `includes` files.
     # Every item defines the plugin `package` as a [NPM package spec](https://docs.npmjs.com/cli/v10/using-npm/package-spec),
-    # an optional `pluginConfig` with plugin-specific backstage configuration, and an optional `disabled` flag to disable/enable a plugin
+    # an optional `pluginConfig` with plugin-specific backstage configuration, and an optional `enabled` flag to enable/disable a plugin
     # listed in `includes` files. It also includes an `integrity` field that is used to verify the plugin package [integrity](https://w3c.github.io/webappsec-subresource-integrity/#integrity-metadata-description).
     plugins: []
   # -- Shorthand for users who do not want to specify a custom HOSTNAME. Used ONLY with the DEFAULT upstream.backstage.appConfig value and with OCP Route enabled.
@@ -55,10 +55,10 @@ global:
     # -- Lightspeed plugins and their configuration. Override package references for disconnected environments.
     plugins:
       - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ "{{inherit}}" }}'
-        disabled: false
+        enabled: true
 
       - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ "{{inherit}}" }}'
-        disabled: false
+        enabled: true
     runtimeVolume:
       # -- Name of the Kubernetes volume used for writable Lightspeed runtime storage.
       name: lightspeed-data
@@ -135,8 +135,10 @@ global:
         - >-
           mkdir -p /tmp/data &&
           echo 'Copying Lightspeed RAG data...' &&
-          cp -r /rag/vector_db /rag-content/ &&
-          cp -r /rag/embeddings_model /rag-content/ &&
+          cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ &&
+          cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ &&
+          mkdir -p /rag-content/vector_db/notebooks &&
+          chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db &&
           echo 'Copy complete.'
       env: []
       # -- Resource requests/limits for the Lightspeed RAG bootstrap init container.
@@ -159,7 +161,7 @@ global:
     sidecar:
       name: lightspeed-core
       # -- Full image reference for the Lightspeed Core sidecar. Override for disconnected environments.
-      image: quay.io/lightspeed-core/lightspeed-stack:0.5.1
+      image: quay.io/lightspeed-core/lightspeed-stack:0.5.2
       imagePullPolicy: IfNotPresent
       portName: http-lightspeed
       containerPort: 8080
@@ -546,10 +548,10 @@ orchestrator:
   # -- Orchestrator plugins and their configuration
   plugins:
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ "{{inherit}}" }}'
-      disabled: false
+      enabled: true
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ "{{inherit}}" }}'
-      disabled: false
+      enabled: true
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ "{{inherit}}" }}'
-      disabled: false
+      enabled: true
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ "{{inherit}}" }}'
-      disabled: false
+      enabled: true

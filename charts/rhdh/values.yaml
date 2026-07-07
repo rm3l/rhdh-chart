@@ -19,10 +19,10 @@ replicaCount: 1
 
 # -- Container image configuration.
 image:
-  registry: quay.io
-  repository: rhdh-community/rhdh
-  tag: next
-  pullPolicy: IfNotPresent
+  registry: "quay.io"
+  repository: "rhdh-community/rhdh"
+  tag: "next"
+  pullPolicy: "IfNotPresent"
   # -- Overrides the image tag with an image digest.
   digest: ""
 
@@ -62,11 +62,11 @@ securityContext:
 
 # -- Service configuration.
 service:
-  type: ClusterIP
+  type: "ClusterIP"
   port: 7007
   # -- Additional service ports.
   extraPorts:
-    - name: http-metrics
+    - name: "http-metrics"
       port: 9464
       targetPort: 9464
   annotations: {}
@@ -82,10 +82,10 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: chart-example.local
+    - host: "chart-example.local"
       paths:
-        - path: /
-          pathType: ImplementationSpecific
+        - path: "/"
+          pathType: "ImplementationSpecific"
   tls: []
 
 # -- Gateway API HTTPRoute configuration.
@@ -109,9 +109,9 @@ resources:
 # -- Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in.
 startupProbe:
   httpGet:
-    path: /.backstage/health/v1/liveness
-    port: backend
-    scheme: HTTP
+    path: "/.backstage/health/v1/liveness"
+    port: "backend"
+    scheme: "HTTP"
   initialDelaySeconds: 30
   timeoutSeconds: 4
   periodSeconds: 20
@@ -121,9 +121,9 @@ startupProbe:
 # -- Readiness probe configuration.
 readinessProbe:
   httpGet:
-    path: /.backstage/health/v1/readiness
-    port: backend
-    scheme: HTTP
+    path: "/.backstage/health/v1/readiness"
+    port: "backend"
+    scheme: "HTTP"
   periodSeconds: 10
   successThreshold: 2
   failureThreshold: 3
@@ -132,9 +132,9 @@ readinessProbe:
 # -- Liveness probe configuration.
 livenessProbe:
   httpGet:
-    path: /.backstage/health/v1/liveness
-    port: backend
-    scheme: HTTP
+    path: "/.backstage/health/v1/liveness"
+    port: "backend"
+    scheme: "HTTP"
   periodSeconds: 10
   successThreshold: 1
   failureThreshold: 3
@@ -156,10 +156,13 @@ volumes: []
 # system-required mounts, never replacing them.
 volumeMounts: []
 
+# -- Node labels for pod assignment.
 nodeSelector: {}
 
+# -- Tolerations for pod assignment.
 tolerations: []
 
+# -- Affinity rules for pod assignment.
 affinity: {}
 
 # -- Topology spread constraints for pod scheduling.
@@ -195,7 +198,7 @@ diagnosticMode:
   command:
     - sleep
   args:
-    - infinity
+    - "infinity"
 
 # -- Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.
 # @default -- Default config with base URLs, CORS, database connection, and backend auth.
@@ -274,11 +277,10 @@ dynamicPlugins:
   plugins: []
 
 # -- Catalog index configuration for automatic plugin discovery.
-# -- Catalog index configuration for automatic plugin discovery.
 catalogIndex:
   image:
-    registry: quay.io
-    repository: rhdh/plugin-catalog-index
+    registry: "quay.io"
+    repository: "rhdh/plugin-catalog-index"
     tag: "1.10"
     digest: ""
   # -- Extra catalog index images for additional plugin discovery in the Extensions UI.
@@ -305,54 +307,54 @@ lightspeed:
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ "{{inherit}}" }}'
       enabled: true
   runtimeVolume:
-    name: lightspeed-data
-    mountPath: /tmp
-    type: emptyDir
+    name: "lightspeed-data"
+    mountPath: "/tmp"
+    type: "emptyDir"
     emptyDir: {}
     persistentVolumeClaim: {}
   ragVolume:
-    name: lightspeed-rag
-    initMountPath: /rag-content
-    mountPath: /rag-content
+    name: "lightspeed-rag"
+    initMountPath: "/rag-content"
+    mountPath: "/rag-content"
     emptyDir: {}
   configMaps:
-    - name: stack
+    - name: "stack"
       create: true
       nameOverride: ""
-      mountPath: /app-root/lightspeed-stack.yaml
-      subPath: lightspeed-stack.yaml
-      sourceFile: lightspeed-stack.yaml
+      mountPath: "/app-root/lightspeed-stack.yaml"
+      subPath: "lightspeed-stack.yaml"
+      sourceFile: "lightspeed-stack.yaml"
       optional: false
-    - name: config
+    - name: "config"
       create: true
       nameOverride: ""
-      mountPath: /app-root/config.yaml
-      subPath: config.yaml
-      sourceFile: config.yaml
+      mountPath: "/app-root/config.yaml"
+      subPath: "config.yaml"
+      sourceFile: "config.yaml"
       optional: false
-    - name: rhdh-profile
+    - name: "rhdh-profile"
       create: true
       nameOverride: ""
-      mountPath: /app-root/rhdh-profile.py
-      subPath: rhdh-profile.py
-      sourceFile: rhdh-profile.py
+      mountPath: "/app-root/rhdh-profile.py"
+      subPath: "rhdh-profile.py"
+      sourceFile: "rhdh-profile.py"
       optional: false
   secret:
     create: true
     name: ""
     optional: false
-    sourceFile: secret.yaml
+    sourceFile: "secret.yaml"
   initContainer:
-    name: lightspeed-rag-init
+    name: "lightspeed-rag-init"
     image:
-      registry: quay.io
-      repository: redhat-ai-dev/rag-content
-      tag: release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3
+      registry: "quay.io"
+      repository: "redhat-ai-dev/rag-content"
+      tag: "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
       digest: ""
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: "IfNotPresent"
     command:
-      - sh
-      - -c
+      - "sh"
+      - "-c"
     args:
       - >-
         mkdir -p /tmp/data &&
@@ -380,14 +382,14 @@ lightspeed:
       seccompProfile:
         type: "RuntimeDefault"
   sidecar:
-    name: lightspeed-core
+    name: "lightspeed-core"
     image:
-      registry: quay.io
-      repository: lightspeed-core/lightspeed-stack
+      registry: "quay.io"
+      repository: "lightspeed-core/lightspeed-stack"
       tag: "0.5.2"
       digest: ""
-    imagePullPolicy: IfNotPresent
-    portName: http-lightspeed
+    imagePullPolicy: "IfNotPresent"
+    portName: "http-lightspeed"
     containerPort: 8080
     command: []
     args: []
@@ -415,7 +417,7 @@ route:
   enabled: true
   host: "{{ .Values.host }}"
   path: "/"
-  wildcardPolicy: None
+  wildcardPolicy: "None"
   tls:
     enabled: true
     termination: "edge"
@@ -428,18 +430,18 @@ route:
 # -- Built-in PostgreSQL database (bitnami subchart).
 postgresql:
   enabled: true
-  postgresqlDataDir: /var/lib/pgsql/data/userdata
+  postgresqlDataDir: "/var/lib/pgsql/data/userdata"
   serviceBindings:
     enabled: true
   image:
-    registry: quay.io
-    repository: fedora/postgresql-15
-    tag: latest
+    registry: "quay.io"
+    repository: "fedora/postgresql-15"
+    tag: "latest"
     digest: ""
   auth:
     secretKeys:
-      adminPasswordKey: postgres-password
-      userPasswordKey: password
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "password"
   primary:
     podSecurityContext:
       enabled: false
@@ -460,31 +462,20 @@ postgresql:
     persistence:
       enabled: true
       size: 1Gi
-      mountPath: /var/lib/pgsql/data
+      mountPath: "/var/lib/pgsql/data"
     extraEnvVars:
-      - name: POSTGRESQL_ADMIN_PASSWORD
+      - name: "POSTGRESQL_ADMIN_PASSWORD"
         valueFrom:
           secretKeyRef:
             key: '{{- include "rhdh.postgresql.adminPasswordKey" . }}'
             name: '{{- include "rhdh.postgresql.secretName" . }}'
 
-# -- Network Policy configuration.
-networkPolicy:
-  enabled: false
-  ingressRules:
-    namespaceSelector: {}
-    podSelector: {}
-    customRules: []
-  egressRules:
-    denyConnectionsToExternal: false
-    customRules: []
-
 # -- Prometheus metrics configuration.
 metrics:
   serviceMonitor:
     enabled: false
-    path: /metrics
-    port: http-metrics
+    path: "/metrics"
+    port: "http-metrics"
     interval: ""
     labels: {}
     annotations: {}
@@ -510,7 +501,7 @@ orchestrator:
       limits:
         memory: "1Gi"
         cpu: "500m"
-    externalDBsecretRef: ""
+    externalDBSecretRef: ""
     externalDBName: ""
     externalDBHost: ""
     externalDBPort: ""
@@ -535,8 +526,8 @@ orchestrator:
 test:
   enabled: true
   image:
-    registry: quay.io
-    repository: curl/curl
+    registry: "quay.io"
+    repository: "curl/curl"
     tag: "8.9.1"
     digest: ""
   injectTestNpmrcSecret: false

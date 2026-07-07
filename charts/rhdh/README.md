@@ -175,7 +175,7 @@ Kubernetes: `>= 1.31.0-0`
 
 | Key | Description | Type | Default |
 |-----|-------------|------|---------|
-| affinity |  | object | `{}` |
+| affinity | Affinity rules for pod assignment. | object | `{}` |
 | appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | Default config with base URLs, CORS, database connection, and backend auth. |
 | args | Additional arguments for the backstage container. System arguments (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically. | list | `[]` |
 | auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` |
@@ -216,9 +216,8 @@ Kubernetes: `>= 1.31.0-0`
 | livenessProbe | Liveness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":4}` |
 | metrics | Prometheus metrics configuration. | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` |
 | nameOverride | Override the chart name used in resource naming. | string | `""` |
-| networkPolicy | Network Policy configuration. | object | `{"egressRules":{"customRules":[],"denyConnectionsToExternal":false},"enabled":false,"ingressRules":{"customRules":[],"namespaceSelector":{},"podSelector":{}}}` |
-| nodeSelector |  | object | `{}` |
-| orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"createDBJobImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","dataIndexImage":"","dbCreationJobActiveDeadlineSeconds":120,"dbCreationJobBackoffLimit":2,"dbCreationJobTTLSecondsAfterFinished":null,"eventing":{"broker":{"name":"","namespace":""}},"externalDBHost":"","externalDBName":"","externalDBPort":"","externalDBsecretRef":"","initContainerImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","jobServiceImage":"","monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
+| nodeSelector | Node labels for pod assignment. | object | `{}` |
+| orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"createDBJobImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","dataIndexImage":"","dbCreationJobActiveDeadlineSeconds":120,"dbCreationJobBackoffLimit":2,"dbCreationJobTTLSecondsAfterFinished":null,"eventing":{"broker":{"name":"","namespace":""}},"externalDBHost":"","externalDBName":"","externalDBPort":"","externalDBSecretRef":"","initContainerImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","jobServiceImage":"","monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
 | podAnnotations | Annotations to add to the pod. | object | `{}` |
 | podDisruptionBudget | Pod Disruption Budget configuration. | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` |
 | podLabels | Labels to add to the pod. | object | `{}` |
@@ -237,7 +236,7 @@ Kubernetes: `>= 1.31.0-0`
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |
 | test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` |
-| tolerations |  | list | `[]` |
+| tolerations | Tolerations for pod assignment. | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
 | volumeMounts | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. | list | `[]` |
 | volumes | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. | list | `[]` |
@@ -420,7 +419,7 @@ and populate the following values in the values.yaml:
 ```bash
     orchestrator:
       sonataflowPlatform:
-        externalDBsecretRef: <cred-secret>
+        externalDBSecretRef: <cred-secret>
         externalDBName: ""
         externalDBHost: ""
         externalDBPort: ""
@@ -434,7 +433,7 @@ Finally, install the Helm Chart (including [setting up the external DB](https://
 ```
 helm install <release_name> redhat-developer/redhat-developer-hub \
   --set orchestrator.enabled=true \
-  --set orchestrator.sonataflowPlatform.externalDBsecretRef=<cred-secret> \
+  --set orchestrator.sonataflowPlatform.externalDBSecretRef=<cred-secret> \
   --set orchestrator.sonataflowPlatform.externalDBName=example \
   --set orchestrator.sonataflowPlatform.externalDBHost=example \
   --set orchestrator.sonataflowPlatform.externalDBPort=example

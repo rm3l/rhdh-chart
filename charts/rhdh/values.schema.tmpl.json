@@ -870,57 +870,6 @@
                 }
             }
         },
-        "networkPolicy": {
-            "title": "Network Policy configuration.",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "title": "Enable network policies.",
-                    "type": "boolean",
-                    "default": false
-                },
-                "ingressRules": {
-                    "title": "Ingress rules.",
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                        "namespaceSelector": {
-                            "title": "Namespace selector for ingress rules.",
-                            "type": "object",
-                            "default": {}
-                        },
-                        "podSelector": {
-                            "title": "Pod selector for ingress rules.",
-                            "type": "object",
-                            "default": {}
-                        },
-                        "customRules": {
-                            "title": "Custom ingress rules.",
-                            "type": "array",
-                            "default": []
-                        }
-                    }
-                },
-                "egressRules": {
-                    "title": "Egress rules.",
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                        "denyConnectionsToExternal": {
-                            "title": "Deny connections to external.",
-                            "type": "boolean",
-                            "default": false
-                        },
-                        "customRules": {
-                            "title": "Custom egress rules.",
-                            "type": "array",
-                            "default": []
-                        }
-                    }
-                }
-            }
-        },
         "metrics": {
             "title": "Prometheus metrics configuration.",
             "type": "object",
@@ -1108,7 +1057,7 @@
                                 }
                             }
                         },
-                        "externalDBsecretRef": {
+                        "externalDBSecretRef": {
                             "title": "Secret name for the user-created secret to connect an external DB.",
                             "type": "string"
                         },

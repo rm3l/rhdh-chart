@@ -335,7 +335,7 @@ and populate the following values in the values.yaml:
 ```bash
     orchestrator:
       sonataflowPlatform:
-        externalDBsecretRef: <cred-secret>
+        externalDBSecretRef: <cred-secret>
         externalDBName: ""
         externalDBHost: ""
         externalDBPort: ""
@@ -349,7 +349,7 @@ Finally, install the Helm Chart (including [setting up the external DB](https://
 ```
 helm install <release_name> redhat-developer/redhat-developer-hub \
   --set orchestrator.enabled=true \
-  --set orchestrator.sonataflowPlatform.externalDBsecretRef=<cred-secret> \
+  --set orchestrator.sonataflowPlatform.externalDBSecretRef=<cred-secret> \
   --set orchestrator.sonataflowPlatform.externalDBName=example \
   --set orchestrator.sonataflowPlatform.externalDBHost=example \
   --set orchestrator.sonataflowPlatform.externalDBPort=example

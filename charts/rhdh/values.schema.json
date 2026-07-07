@@ -867,57 +867,6 @@
             "title": "Override the chart name used in resource naming.",
             "type": "string"
         },
-        "networkPolicy": {
-            "additionalProperties": false,
-            "properties": {
-                "egressRules": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "customRules": {
-                            "default": [],
-                            "title": "Custom egress rules.",
-                            "type": "array"
-                        },
-                        "denyConnectionsToExternal": {
-                            "default": false,
-                            "title": "Deny connections to external.",
-                            "type": "boolean"
-                        }
-                    },
-                    "title": "Egress rules.",
-                    "type": "object"
-                },
-                "enabled": {
-                    "default": false,
-                    "title": "Enable network policies.",
-                    "type": "boolean"
-                },
-                "ingressRules": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "customRules": {
-                            "default": [],
-                            "title": "Custom ingress rules.",
-                            "type": "array"
-                        },
-                        "namespaceSelector": {
-                            "default": {},
-                            "title": "Namespace selector for ingress rules.",
-                            "type": "object"
-                        },
-                        "podSelector": {
-                            "default": {},
-                            "title": "Pod selector for ingress rules.",
-                            "type": "object"
-                        }
-                    },
-                    "title": "Ingress rules.",
-                    "type": "object"
-                }
-            },
-            "title": "Network Policy configuration.",
-            "type": "object"
-        },
         "nodeSelector": {
             "default": {},
             "title": "Node selector for pod assignment.",
@@ -1051,7 +1000,7 @@
                             "title": "Port for the user-configured external Database.",
                             "type": "string"
                         },
-                        "externalDBsecretRef": {
+                        "externalDBSecretRef": {
                             "title": "Secret name for the user-created secret to connect an external DB.",
                             "type": "string"
                         },

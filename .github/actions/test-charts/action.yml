@@ -207,6 +207,7 @@ runs:
           # across init containers and sidecars that may run as different UIDs.
           EXTRA_ARGS+=(
             "--set route.enabled=false"
+            "--set postgresql.primary.persistence.enabled=false"
             "--set podSecurityContext.fsGroup=1001"
           )
         fi

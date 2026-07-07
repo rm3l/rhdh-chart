@@ -207,8 +207,6 @@ runs:
           # across init containers and sidecars that may run as different UIDs.
           EXTRA_ARGS+=(
             "--set route.enabled=false"
-            "--set podSecurityContext.runAsUser=1001"
-            "--set podSecurityContext.runAsGroup=1001"
             "--set podSecurityContext.fsGroup=1001"
           )
         fi

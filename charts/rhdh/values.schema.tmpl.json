@@ -599,10 +599,10 @@
                                 "title": "Optional plugin-specific app-config YAML fragment.",
                                 "type": "object"
                             },
-                            "disabled": {
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "title": "Enable the plugin.",
                                 "type": "boolean",
-                                "default": false
+                                "default": true
                             }
                         },
                         "required": ["package"]
@@ -725,10 +725,10 @@
                                 "title": "Optional plugin-specific app-config YAML fragment.",
                                 "type": "object"
                             },
-                            "disabled": {
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "title": "Enable the plugin.",
                                 "type": "boolean",
-                                "default": false
+                                "default": true
                             }
                         },
                         "required": ["package"]
@@ -993,10 +993,10 @@
                                 "title": "Optional plugin-specific app-config YAML fragment.",
                                 "type": "object"
                             },
-                            "disabled": {
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "title": "Enable the plugin.",
                                 "type": "boolean",
-                                "default": false
+                                "default": true
                             }
                         },
                         "required": ["package"]

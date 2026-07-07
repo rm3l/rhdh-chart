@@ -281,9 +281,9 @@
                 "plugins": {
                     "items": {
                         "properties": {
-                            "disabled": {
-                                "default": false,
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "default": true,
+                                "title": "Enable the plugin.",
                                 "type": "boolean"
                             },
                             "integrity": {
@@ -621,11 +621,11 @@
                 },
                 "plugins": [
                     {
-                        "disabled": false,
+                        "enabled": true,
                         "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
                     },
                     {
-                        "disabled": false,
+                        "enabled": true,
                         "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
                     }
                 ],
@@ -696,19 +696,19 @@
                 "plugins": {
                     "default": [
                         {
-                            "disabled": false,
+                            "enabled": true,
                             "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
                         },
                         {
-                            "disabled": false,
+                            "enabled": true,
                             "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
                         }
                     ],
                     "items": {
                         "properties": {
-                            "disabled": {
-                                "default": false,
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "default": true,
+                                "title": "Enable the plugin.",
                                 "type": "boolean"
                             },
                             "integrity": {
@@ -934,9 +934,9 @@
                 "plugins": {
                     "items": {
                         "properties": {
-                            "disabled": {
-                                "default": false,
-                                "title": "Disable the plugin.",
+                            "enabled": {
+                                "default": true,
+                                "title": "Enable the plugin.",
                                 "type": "boolean"
                             },
                             "integrity": {

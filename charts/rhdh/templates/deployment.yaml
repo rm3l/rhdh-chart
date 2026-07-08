@@ -248,9 +248,11 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
           {{- end }}
           args:
+            {{- if .Values.args }}
             {{- range .Values.args }}
             - {{ . | quote }}
             {{- end }}
+            {{- else }}
             - "--config"
             - "{{ $installDir }}/dynamic-plugins-root/app-config.dynamic-plugins.yaml"
             {{- range .Values.extraAppConfig }}
@@ -260,6 +262,10 @@ spec:
             {{- if .Values.appConfig }}
             - "--config"
             - "{{ $installDir }}/app-config-from-configmap.yaml"
+            {{- end }}
+            {{- range .Values.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
             {{- end }}
           {{- with .Values.resources }}
           resources:

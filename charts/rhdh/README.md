@@ -176,7 +176,7 @@ Kubernetes: `>= 1.31.0-0`
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity rules for pod assignment. |
 | appConfig | object | Default config with base URLs, CORS, database connection, and backend auth. | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. |
-| args | list | `[]` | Additional arguments for the backstage container. System arguments (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically. |
+| args | list | `[]` |  |
 | auth | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` | Service-to-service authentication configuration. |
 | auth.backend.enabled | bool | `true` | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. |
 | auth.backend.existingSecret | string | `""` | Use an existing secret instead of generating one. |
@@ -200,6 +200,7 @@ Kubernetes: `>= 1.31.0-0`
 | dynamicPlugins.volume.type | string | `"ephemeral"` | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). |
 | envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
 | extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |
+| extraArgs | list | `[]` |  |
 | extraContainers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
 | extraEnv | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
 | extraInitContainers | list | `[]` | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. |

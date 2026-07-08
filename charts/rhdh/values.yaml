@@ -178,9 +178,11 @@ strategy: {}
 # -- Override the container command.
 command: []
 
-# -- Additional arguments for the backstage container. System arguments
-# (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically.
+# -- Override the container arguments entirely. When set, system --config arguments
+# are NOT added automatically — you must include them yourself.
 args: []
+# -- Extra arguments appended after the system --config flags.
+extraArgs: []
 
 # -- Labels applied to ALL chart resources.
 commonLabels: {}

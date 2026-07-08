@@ -29,9 +29,14 @@ dependencies:
     tags:
       - bitnami-common
     version: "2.40.0"
+  # Pinned to 16.2.x: starting with 16.3.0, the bitnami common library
+  # rejects non-bitnami images unless global.security.allowInsecureImages
+  # is set, which might be confusing for users. Since this chart ships a
+  # Fedora-based PostgreSQL image, we stay on the last version without
+  # that check. See https://github.com/bitnami/charts/issues/30850
   - name: postgresql
     repository: oci://registry-1.docker.io/bitnamicharts
-    version: "18.7.5"
+    version: "16.2.5"
     condition: postgresql.enabled
 keywords:
   - backstage

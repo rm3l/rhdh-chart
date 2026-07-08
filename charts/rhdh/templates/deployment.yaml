@@ -255,13 +255,13 @@ spec:
             {{- else }}
             - "--config"
             - "{{ $installDir }}/dynamic-plugins-root/app-config.dynamic-plugins.yaml"
-            {{- range .Values.extraAppConfig }}
-            - "--config"
-            - "{{ $installDir }}/{{ .filename }}"
-            {{- end }}
             {{- if .Values.appConfig }}
             - "--config"
             - "{{ $installDir }}/app-config-from-configmap.yaml"
+            {{- end }}
+            {{- range .Values.extraAppConfig }}
+            - "--config"
+            - "{{ $installDir }}/{{ .filename }}"
             {{- end }}
             {{- range .Values.extraArgs }}
             - {{ . | quote }}

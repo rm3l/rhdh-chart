@@ -41,7 +41,7 @@
             "title": "Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.",
             "type": "object"
         },
-        "args": {
+        "argsOverride": {
             "default": [],
             "items": {
                 "type": "string"

@@ -388,7 +388,7 @@
                 "type": "string"
             }
         },
-        "args": {
+        "argsOverride": {
             "title": "Override the container arguments entirely. When set, system --config arguments are NOT added automatically.",
             "type": "array",
             "default": [],

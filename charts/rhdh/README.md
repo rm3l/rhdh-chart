@@ -176,7 +176,7 @@ Kubernetes: `>= 1.31.0-0`
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity rules for pod assignment. |
 | appConfig | object | Default config with base URLs, CORS, database connection, and backend auth. | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. |
-| args | list | `[]` |  |
+| argsOverride | list | `[]` |  |
 | auth | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` | Service-to-service authentication configuration. |
 | auth.backend.enabled | bool | `true` | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. |
 | auth.backend.existingSecret | string | `""` | Use an existing secret instead of generating one. |

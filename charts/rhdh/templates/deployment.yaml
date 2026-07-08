@@ -248,8 +248,8 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
           {{- end }}
           args:
-            {{- if .Values.args }}
-            {{- range .Values.args }}
+            {{- if .Values.argsOverride }}
+            {{- range .Values.argsOverride }}
             - {{ . | quote }}
             {{- end }}
             {{- else }}

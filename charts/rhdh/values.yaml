@@ -180,7 +180,7 @@ command: []
 
 # -- Override the container arguments entirely. When set, system --config arguments
 # are NOT added automatically — you must include them yourself.
-args: []
+argsOverride: []
 # -- Extra arguments appended after the system --config flags.
 extraArgs: []
 

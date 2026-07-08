@@ -438,8 +438,13 @@
                 "required": ["filename", "configMapRef"]
             }
         },
+        "envOverride": {
+            "title": "Override the container environment variables entirely. When set, system env vars (BACKEND_SECRET, DB credentials, etc.) are NOT added automatically.",
+            "type": "array",
+            "default": []
+        },
         "extraEnv": {
-            "title": "Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them.",
+            "title": "Extra environment variables appended after the system env vars.",
             "type": "array",
             "default": []
         },

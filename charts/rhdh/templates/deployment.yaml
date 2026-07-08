@@ -295,6 +295,9 @@ spec:
             {{- end }}
           {{- end }}
           env:
+            {{- if .Values.envOverride }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.envOverride "context" $) | nindent 12 }}
+            {{- else }}
             # --- System env vars (hardcoded) ---
             - name: APP_CONFIG_backend_listen_port
               value: {{ .Values.service.port | quote }}
@@ -321,6 +324,7 @@ spec:
             # --- User-additional env vars (appended) ---
             {{- with .Values.extraEnv }}
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
             {{- end }}
           ports:
             - name: backend

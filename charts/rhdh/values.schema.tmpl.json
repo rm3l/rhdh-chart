@@ -417,34 +417,6 @@
             "type": "object",
             "default": {}
         },
-        "diagnosticMode": {
-            "title": "Diagnostic mode disables all probes and overrides the container command for debugging.",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "title": "Enable diagnostic mode.",
-                    "type": "boolean",
-                    "default": false
-                },
-                "command": {
-                    "title": "Command to run in diagnostic mode.",
-                    "type": "array",
-                    "default": ["sleep"],
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "args": {
-                    "title": "Arguments for the diagnostic mode command.",
-                    "type": "array",
-                    "default": ["infinity"],
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "appConfig": {
             "title": "Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.",
             "type": "object",

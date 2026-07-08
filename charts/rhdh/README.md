@@ -1,4 +1,3 @@
-
 # RHDH Helm Chart for OpenShift and Kubernetes
 
 ![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)
@@ -173,73 +172,72 @@ Kubernetes: `>= 1.31.0-0`
 
 ## Values
 
-| Key | Description | Type | Default |
-|-----|-------------|------|---------|
-| affinity | Affinity rules for pod assignment. | object | `{}` |
-| appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | Default config with base URLs, CORS, database connection, and backend auth. |
-| args | Additional arguments for the backstage container. System arguments (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically. | list | `[]` |
-| auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` |
-| auth.backend.enabled | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. | bool | `true` |
-| auth.backend.existingSecret | Use an existing secret instead of generating one. | string | `""` |
-| auth.backend.value | Use a specific value instead of generating one. | string | `""` |
-| autoscaling | Horizontal Pod Autoscaler configuration. | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` |
-| catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10"}}` |
-| catalogIndex.extraImages | Extra catalog index images for additional plugin discovery in the Extensions UI. Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional. Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling). | list | `[]` |
-| clusterRouterBase | Cluster router base domain used to auto-generate the hostname. | string | `"apps.example.com"` |
-| command | Override the container command. | list | `[]` |
-| commonAnnotations | Annotations applied to ALL chart resources. | object | `{}` |
-| commonLabels | Labels applied to ALL chart resources. | object | `{}` |
-| containers | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. | list | `[]` |
-| deploymentAnnotations | Annotations for the Deployment resource (not the pod). | object | `{}` |
-| diagnosticMode | Diagnostic mode disables all probes and overrides the container command for debugging. | object | `{"args":["infinity"],"command":["sleep"],"enabled":false}` |
-| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[]}` |
-| dynamicPlugins.includes | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). | list | `["dynamic-plugins.default.yaml"]` |
-| dynamicPlugins.plugins | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. | list | `[]` |
-| env | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. | list | `[]` |
-| envFrom | ConfigMaps and Secrets to inject as environment variables via envFrom. | object | `{"configMaps":[],"secrets":[]}` |
-| extraAppConfig | Additional app-config files from existing ConfigMaps. | list | `[]` |
-| fullnameOverride | Override the full resource name. | string | `""` |
-| global | Global parameters shared with bitnami subcharts (postgresql, common). | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":"","security":{"allowInsecureImages":true}}` |
-| global.defaultStorageClass | Global default StorageClass for PVCs. | string | `""` |
-| global.imagePullSecrets | Global Docker registry secret names. | list | `[]` |
-| global.imageRegistry | Global Docker image registry. Overrides per-image registries for all containers. | string | `""` |
-| global.security.allowInsecureImages | Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true; does not affect the RHDH or Lightspeed images. Must be true when using a non-bitnami PostgreSQL image (including the Red Hat secured image used in the downstream build). | bool | `true` |
-| host | Custom hostname. Overrides clusterRouterBase for URL generation. | string | `""` |
-| hostAliases | Host aliases for /etc/hosts entries. | list | `[]` |
-| httpRoute | Gateway API HTTPRoute configuration. | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` |
-| image | Container image configuration. | object | `{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"rhdh-community/rhdh","tag":"next"}` |
-| image.digest | Overrides the image tag with an image digest. | string | `""` |
-| imagePullSecrets | Secrets for pulling images from private registries (merged with global.imagePullSecrets). | list | `[]` |
-| ingress | Kubernetes Ingress configuration. | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}],"tls":[]}` |
-| initContainers | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. | list | `[]` |
-| lightspeed | Built-in Lightspeed AI feature configuration. | object | `{"configMaps":[{"create":true,"mountPath":"/app-root/lightspeed-stack.yaml","name":"stack","nameOverride":"","optional":false,"sourceFile":"lightspeed-stack.yaml","subPath":"lightspeed-stack.yaml"},{"create":true,"mountPath":"/app-root/config.yaml","name":"config","nameOverride":"","optional":false,"sourceFile":"config.yaml","subPath":"config.yaml"},{"create":true,"mountPath":"/app-root/rhdh-profile.py","name":"rhdh-profile","nameOverride":"","optional":false,"sourceFile":"rhdh-profile.py","subPath":"rhdh-profile.py"}],"enabled":true,"initContainer":{"args":["mkdir -p /tmp/data && echo 'Copying Lightspeed RAG data...' && cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ && cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ && mkdir -p /rag-content/vector_db/notebooks && chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db && echo 'Copy complete.'"],"command":["sh","-c"],"env":[],"image":{"digest":"","registry":"quay.io","repository":"redhat-ai-dev/rag-content","tag":"release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-rag-init","resources":{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"}],"ragVolume":{"emptyDir":{},"initMountPath":"/rag-content","mountPath":"/rag-content","name":"lightspeed-rag"},"runtimeVolume":{"emptyDir":{},"mountPath":"/tmp","name":"lightspeed-data","persistentVolumeClaim":{},"type":"emptyDir"},"secret":{"create":true,"name":"","optional":false,"sourceFile":"secret.yaml"},"sidecar":{"args":[],"command":[],"containerPort":8080,"env":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.5.2"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-core","portName":"http-lightspeed","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}}` |
-| livenessProbe | Liveness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":4}` |
-| metrics | Prometheus metrics configuration. | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` |
-| nameOverride | Override the chart name used in resource naming. | string | `""` |
-| nodeSelector | Node labels for pod assignment. | object | `{}` |
-| orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"createDBJobImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","dataIndexImage":"","dbCreationJobActiveDeadlineSeconds":120,"dbCreationJobBackoffLimit":2,"dbCreationJobTTLSecondsAfterFinished":null,"eventing":{"broker":{"name":"","namespace":""}},"externalDBHost":"","externalDBName":"","externalDBPort":"","externalDBSecretRef":"","initContainerImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","jobServiceImage":"","monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
-| podAnnotations | Annotations to add to the pod. | object | `{}` |
-| podDisruptionBudget | Pod Disruption Budget configuration. | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` |
-| podLabels | Labels to add to the pod. | object | `{}` |
-| podSecurityContext | Pod-level security context. | object | `{}` |
-| postgresql | Built-in PostgreSQL database (bitnami subchart). | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"fedora/postgresql-15","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"serviceBindings":{"enabled":true}}` |
-| readinessProbe | Readiness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/readiness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":2,"timeoutSeconds":4}` |
-| replicaCount | Number of desired pods. | int | `1` |
-| resources | Resource requests and limits for the main RHDH container. | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` |
-| revisionHistoryLimit | Number of old ReplicaSets to retain. | int | `10` |
-| route | OpenShift Route configuration. | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` |
-| securityContext | Container-level security context with hardened defaults for OpenShift. | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` |
-| service | Service configuration. | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"loadBalancerIP":"","loadBalancerSourceRanges":[],"port":7007,"sessionAffinity":"","type":"ClusterIP"}` |
-| service.extraPorts | Additional service ports. | list | `[{"name":"http-metrics","port":9464,"targetPort":9464}]` |
-| serviceAccount | ServiceAccount configuration. | object | `{"annotations":{},"automount":true,"create":false,"name":""}` |
-| serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
-| startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
-| strategy | Deployment update strategy. | object | `{}` |
-| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` |
-| tolerations | Tolerations for pod assignment. | list | `[]` |
-| topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
-| volumeMounts | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. | list | `[]` |
-| volumes | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. | list | `[]` |
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` | Affinity rules for pod assignment. |
+| appConfig | object | Default config with base URLs, CORS, database connection, and backend auth. | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. |
+| args | list | `[]` | Additional arguments for the backstage container. System arguments (--config dynamic-plugins-root/app-config.dynamic-plugins.yaml) are added by the template automatically. |
+| auth | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` | Service-to-service authentication configuration. |
+| auth.backend.enabled | bool | `true` | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. |
+| auth.backend.existingSecret | string | `""` | Use an existing secret instead of generating one. |
+| auth.backend.value | string | `""` | Use a specific value instead of generating one. |
+| autoscaling | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` | Horizontal Pod Autoscaler configuration. |
+| catalogIndex | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10"}}` | Catalog index configuration for automatic plugin discovery. |
+| catalogIndex.extraImages | list | `[]` | Extra catalog index images for additional plugin discovery in the Extensions UI. Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional. Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling). |
+| clusterRouterBase | string | `"apps.example.com"` | Cluster router base domain used to auto-generate the hostname. |
+| command | list | `[]` | Override the container command. |
+| commonAnnotations | object | `{}` | Annotations applied to ALL chart resources. |
+| commonLabels | object | `{}` | Labels applied to ALL chart resources. |
+| containers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
+| deploymentAnnotations | object | `{}` | Annotations for the Deployment resource (not the pod). |
+| dynamicPlugins | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[]}` | Dynamic plugin system configuration. |
+| dynamicPlugins.includes | list | `["dynamic-plugins.default.yaml"]` | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). |
+| dynamicPlugins.plugins | list | `[]` | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. |
+| env | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
+| envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
+| extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |
+| fullnameOverride | string | `""` | Override the full resource name. |
+| global | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":"","security":{"allowInsecureImages":true}}` | Global parameters shared with bitnami subcharts (postgresql, common). |
+| global.defaultStorageClass | string | `""` | Global default StorageClass for PVCs. |
+| global.imagePullSecrets | list | `[]` | Global Docker registry secret names. |
+| global.imageRegistry | string | `""` | Global Docker image registry. Overrides per-image registries for all containers. |
+| global.security.allowInsecureImages | bool | `true` | Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true; does not affect the RHDH or Lightspeed images. Must be true when using a non-bitnami PostgreSQL image (including the Red Hat secured image used in the downstream build). |
+| host | string | `""` | Custom hostname. Overrides clusterRouterBase for URL generation. |
+| hostAliases | list | `[]` | Host aliases for /etc/hosts entries. |
+| httpRoute | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` | Gateway API HTTPRoute configuration. |
+| image | object | `{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"rhdh-community/rhdh","tag":"next"}` | Container image configuration. |
+| image.digest | string | `""` | Overrides the image tag with an image digest. |
+| imagePullSecrets | list | `[]` | Secrets for pulling images from private registries (merged with global.imagePullSecrets). |
+| ingress | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}],"tls":[]}` | Kubernetes Ingress configuration. |
+| initContainers | list | `[]` | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. |
+| lightspeed | object | `{"configMaps":[{"create":true,"mountPath":"/app-root/lightspeed-stack.yaml","name":"stack","nameOverride":"","optional":false,"sourceFile":"lightspeed-stack.yaml","subPath":"lightspeed-stack.yaml"},{"create":true,"mountPath":"/app-root/config.yaml","name":"config","nameOverride":"","optional":false,"sourceFile":"config.yaml","subPath":"config.yaml"},{"create":true,"mountPath":"/app-root/rhdh-profile.py","name":"rhdh-profile","nameOverride":"","optional":false,"sourceFile":"rhdh-profile.py","subPath":"rhdh-profile.py"}],"enabled":true,"initContainer":{"args":["mkdir -p /tmp/data && echo 'Copying Lightspeed RAG data...' && cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ && cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ && mkdir -p /rag-content/vector_db/notebooks && chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db && echo 'Copy complete.'"],"command":["sh","-c"],"env":[],"image":{"digest":"","registry":"quay.io","repository":"redhat-ai-dev/rag-content","tag":"release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-rag-init","resources":{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"}],"ragVolume":{"emptyDir":{},"initMountPath":"/rag-content","mountPath":"/rag-content","name":"lightspeed-rag"},"runtimeVolume":{"emptyDir":{},"mountPath":"/tmp","name":"lightspeed-data","persistentVolumeClaim":{},"type":"emptyDir"},"secret":{"create":true,"name":"","optional":false,"sourceFile":"secret.yaml"},"sidecar":{"args":[],"command":[],"containerPort":8080,"env":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.5.2"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-core","portName":"http-lightspeed","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}}` | Built-in Lightspeed AI feature configuration. |
+| livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":4}` | Liveness probe configuration. |
+| metrics | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` | Prometheus metrics configuration. |
+| nameOverride | string | `""` | Override the chart name used in resource naming. |
+| nodeSelector | object | `{}` | Node labels for pod assignment. |
+| orchestrator | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"createDBJobImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","dataIndexImage":"","dbCreationJobActiveDeadlineSeconds":120,"dbCreationJobBackoffLimit":2,"dbCreationJobTTLSecondsAfterFinished":null,"eventing":{"broker":{"name":"","namespace":""}},"externalDBHost":"","externalDBName":"","externalDBPort":"","externalDBSecretRef":"","initContainerImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","jobServiceImage":"","monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` | Orchestrator (Serverless workflows) configuration. |
+| podAnnotations | object | `{}` | Annotations to add to the pod. |
+| podDisruptionBudget | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` | Pod Disruption Budget configuration. |
+| podLabels | object | `{}` | Labels to add to the pod. |
+| podSecurityContext | object | `{}` | Pod-level security context. |
+| postgresql | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"fedora/postgresql-15","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"serviceBindings":{"enabled":true}}` | Built-in PostgreSQL database (bitnami subchart). |
+| readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/readiness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":2,"timeoutSeconds":4}` | Readiness probe configuration. |
+| replicaCount | int | `1` | Number of desired pods. |
+| resources | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` | Resource requests and limits for the main RHDH container. |
+| revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain. |
+| route | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` | OpenShift Route configuration. |
+| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Container-level security context with hardened defaults for OpenShift. |
+| service | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"loadBalancerIP":"","loadBalancerSourceRanges":[],"port":7007,"sessionAffinity":"","type":"ClusterIP"}` | Service configuration. |
+| service.extraPorts | list | `[{"name":"http-metrics","port":9464,"targetPort":9464}]` | Additional service ports. |
+| serviceAccount | object | `{"annotations":{},"automount":true,"create":false,"name":""}` | ServiceAccount configuration. |
+| serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. |
+| startupProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. |
+| strategy | object | `{}` | Deployment update strategy. |
+| test | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` | Test pod configuration for `helm test`. |
+| tolerations | list | `[]` | Tolerations for pod assignment. |
+| topologySpreadConstraints | list | `[]` | Topology spread constraints for pod scheduling. |
+| volumeMounts | list | `[]` | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. |
+| volumes | list | `[]` | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. |
 
 ## Opinionated RHDH deployment
 

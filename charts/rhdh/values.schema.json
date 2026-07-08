@@ -233,38 +233,6 @@
             "title": "Annotations for the Deployment resource (not the pod).",
             "type": "object"
         },
-        "diagnosticMode": {
-            "additionalProperties": false,
-            "properties": {
-                "args": {
-                    "default": [
-                        "infinity"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "title": "Arguments for the diagnostic mode command.",
-                    "type": "array"
-                },
-                "command": {
-                    "default": [
-                        "sleep"
-                    ],
-                    "items": {
-                        "type": "string"
-                    },
-                    "title": "Command to run in diagnostic mode.",
-                    "type": "array"
-                },
-                "enabled": {
-                    "default": false,
-                    "title": "Enable diagnostic mode.",
-                    "type": "boolean"
-                }
-            },
-            "title": "Diagnostic mode disables all probes and overrides the container command for debugging.",
-            "type": "object"
-        },
         "dynamicPlugins": {
             "additionalProperties": false,
             "properties": {

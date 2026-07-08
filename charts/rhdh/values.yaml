@@ -192,14 +192,6 @@ commonLabels: {}
 # -- Annotations applied to ALL chart resources.
 commonAnnotations: {}
 
-# -- Diagnostic mode disables all probes and overrides the container command for debugging.
-diagnosticMode:
-  enabled: false
-  command:
-    - sleep
-  args:
-    - "infinity"
-
 # -- Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml.
 # @default -- Default config with base URLs, CORS, database connection, and backend auth.
 appConfig:

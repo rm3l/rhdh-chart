@@ -168,7 +168,7 @@ Kubernetes: `>= 1.31.0-0`
 | Repository | Name | Version |
 |------------|------|---------|
 | https://charts.bitnami.com/bitnami | common | 2.40.0 |
-| oci://registry-1.docker.io/bitnamicharts | postgresql | 18.7.5 |
+| oci://registry-1.docker.io/bitnamicharts | postgresql | 16.2.5 |
 
 ## Values
 
@@ -188,6 +188,7 @@ Kubernetes: `>= 1.31.0-0`
 | command | list | `[]` | Override the container command. |
 | commonAnnotations | object | `{}` | Annotations applied to ALL chart resources. |
 | commonLabels | object | `{}` | Labels applied to ALL chart resources. |
+| containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the main RHDH container (not the Lightspeed sidecar or init containers). |
 | containers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
 | deploymentAnnotations | object | `{}` | Annotations for the Deployment resource (not the pod). |
 | dynamicPlugins | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[]}` | Dynamic plugin system configuration. |
@@ -197,11 +198,10 @@ Kubernetes: `>= 1.31.0-0`
 | envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
 | extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |
 | fullnameOverride | string | `""` | Override the full resource name. |
-| global | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":"","security":{"allowInsecureImages":true}}` | Global parameters shared with bitnami subcharts (postgresql, common). |
+| global | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":""}` | Global parameters shared with bitnami subcharts (postgresql, common). |
 | global.defaultStorageClass | string | `""` | Global default StorageClass for PVCs. |
 | global.imagePullSecrets | list | `[]` | Global Docker registry secret names. |
 | global.imageRegistry | string | `""` | Global Docker image registry. Overrides per-image registries for all containers. |
-| global.security.allowInsecureImages | bool | `true` | Allow non-bitnami images for the postgresql subchart. Only effective when postgresql.enabled is true; does not affect the RHDH or Lightspeed images. Must be true when using a non-bitnami PostgreSQL image (including the Red Hat secured image used in the downstream build). |
 | host | string | `""` | Custom hostname. Overrides clusterRouterBase for URL generation. |
 | hostAliases | list | `[]` | Host aliases for /etc/hosts entries. |
 | httpRoute | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` | Gateway API HTTPRoute configuration. |
@@ -226,7 +226,6 @@ Kubernetes: `>= 1.31.0-0`
 | resources | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` | Resource requests and limits for the main RHDH container. |
 | revisionHistoryLimit | int | `10` | Number of old ReplicaSets to retain. |
 | route | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` | OpenShift Route configuration. |
-| securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Container-level security context with hardened defaults for OpenShift. |
 | service | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"loadBalancerIP":"","loadBalancerSourceRanges":[],"port":7007,"sessionAffinity":"","type":"ClusterIP"}` | Service configuration. |
 | service.extraPorts | list | `[{"name":"http-metrics","port":9464,"targetPort":9464}]` | Additional service ports. |
 | serviceAccount | object | `{"annotations":{},"automount":true,"create":false,"name":""}` | ServiceAccount configuration. |

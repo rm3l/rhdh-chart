@@ -137,8 +137,8 @@
             "type": "object",
             "default": {}
         },
-        "securityContext": {
-            "title": "Container-level security context with hardened defaults for OpenShift.",
+        "containerSecurityContext": {
+            "title": "Security context for the main RHDH container (not the Lightspeed sidecar or init containers).",
             "type": "object",
             "default": {}
         },

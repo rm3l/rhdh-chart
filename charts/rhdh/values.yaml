@@ -44,8 +44,8 @@ podLabels: {}
 # -- Pod-level security context.
 podSecurityContext: {}
 
-# -- Container-level security context with hardened defaults for OpenShift.
-securityContext:
+# -- Security context for the main RHDH container (not the Lightspeed sidecar or init containers).
+containerSecurityContext:
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
   capabilities:

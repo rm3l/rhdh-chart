@@ -223,6 +223,23 @@
             "title": "Labels applied to ALL chart resources.",
             "type": "object"
         },
+        "containerSecurityContext": {
+            "default": {
+                "allowPrivilegeEscalation": false,
+                "capabilities": {
+                    "drop": [
+                        "ALL"
+                    ]
+                },
+                "readOnlyRootFilesystem": true,
+                "runAsNonRoot": true,
+                "seccompProfile": {
+                    "type": "RuntimeDefault"
+                }
+            },
+            "title": "Security context for the main RHDH container (not the Lightspeed sidecar or init containers).",
+            "type": "object"
+        },
         "containers": {
             "default": [],
             "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
@@ -1212,23 +1229,6 @@
                 }
             },
             "title": "OpenShift Route parameters.",
-            "type": "object"
-        },
-        "securityContext": {
-            "default": {
-                "allowPrivilegeEscalation": false,
-                "capabilities": {
-                    "drop": [
-                        "ALL"
-                    ]
-                },
-                "readOnlyRootFilesystem": true,
-                "runAsNonRoot": true,
-                "seccompProfile": {
-                    "type": "RuntimeDefault"
-                }
-            },
-            "title": "Container-level security context with hardened defaults for OpenShift.",
             "type": "object"
         },
         "service": {

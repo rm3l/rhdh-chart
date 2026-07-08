@@ -313,7 +313,7 @@ spec:
                   key: {{ include "rhdh.postgresql.adminPasswordKey" . }}
             {{- end }}
             # --- User-additional env vars (appended) ---
-            {{- with .Values.env }}
+            {{- with .Values.extraEnv }}
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
           ports:

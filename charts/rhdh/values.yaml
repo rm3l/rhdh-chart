@@ -216,7 +216,7 @@ extraAppConfig: []
 
 # -- Additional environment variables for the main container. These are ADDED to system
 # env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them.
-env: []
+extraEnv: []
 
 # -- ConfigMaps and Secrets to inject as environment variables via envFrom.
 envFrom:

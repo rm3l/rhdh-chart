@@ -320,11 +320,6 @@
             "title": "Dynamic plugin system configuration.",
             "type": "object"
         },
-        "env": {
-            "default": [],
-            "title": "Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them.",
-            "type": "array"
-        },
         "envFrom": {
             "additionalProperties": false,
             "properties": {
@@ -373,6 +368,11 @@
         "extraContainers": {
             "default": [],
             "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
+            "type": "array"
+        },
+        "extraEnv": {
+            "default": [],
+            "title": "Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them.",
             "type": "array"
         },
         "extraInitContainers": {

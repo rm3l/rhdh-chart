@@ -42,7 +42,7 @@ helm install my-rhdh redhat-developer/redhat-developer-hub --version 1.0.0
 
 This chart bootstraps a [Red Hat Developer Hub](https://developers.redhat.com/rhdh) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `env`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
+Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `extraEnv`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
 
 ## Prerequisites
 
@@ -198,10 +198,10 @@ Kubernetes: `>= 1.31.0-0`
 | dynamicPlugins.volume.ephemeral | object | 5Gi ephemeral PVC with ReadWriteOnce access | Raw Kubernetes ephemeral volume spec. Used when type is "ephemeral". |
 | dynamicPlugins.volume.pvc | object | `{"claimName":""}` | Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc". |
 | dynamicPlugins.volume.type | string | `"ephemeral"` | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). |
-| env | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
 | envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
 | extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |
 | extraContainers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
+| extraEnv | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
 | extraInitContainers | list | `[]` | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. |
 | extraVolumeMounts | list | `[]` | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. |
 | extraVolumes | list | `[]` | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. |
@@ -262,7 +262,7 @@ Additional features can be enabled by extending the default configuration at:
 ```yaml
 appConfig:
   # Inline app-config.yaml for the instance
-env:
+extraEnv:
   # Additional environment variables (appended to system defaults)
 extraVolumes:
   # Additional volumes (appended to system defaults)
@@ -284,7 +284,7 @@ System-required volumes, volume mounts, environment variables, init containers, 
 
 - `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
 - `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
-- `env` — appended after APP_CONFIG_backend_listen_port, BACKEND_SECRET, POSTGRES_* vars
+- `extraEnv` — appended after APP_CONFIG_backend_listen_port, BACKEND_SECRET, POSTGRES_* vars
 - `extraInitContainers` — appended after install-dynamic-plugins and Lightspeed RAG init
 - `extraContainers` — appended after the Lightspeed Core sidecar
 

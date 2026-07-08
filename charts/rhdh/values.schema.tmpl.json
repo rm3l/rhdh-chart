@@ -430,7 +430,7 @@
                 "required": ["filename", "configMapRef"]
             }
         },
-        "env": {
+        "extraEnv": {
             "title": "Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them.",
             "type": "array",
             "default": []

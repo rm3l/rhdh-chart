@@ -42,7 +42,7 @@ helm install my-rhdh redhat-developer/redhat-developer-hub --version 1.0.0
 
 This chart bootstraps a [Red Hat Developer Hub](https://developers.redhat.com/rhdh) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`volumes`, `volumeMounts`, `env`, `initContainers`, `containers`) are always appended — never replacing the defaults.
+Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `env`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
 
 ## Prerequisites
 
@@ -189,7 +189,6 @@ Kubernetes: `>= 1.31.0-0`
 | commonAnnotations | object | `{}` | Annotations applied to ALL chart resources. |
 | commonLabels | object | `{}` | Labels applied to ALL chart resources. |
 | containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the main RHDH container (not the Lightspeed sidecar or init containers). |
-| containers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
 | deploymentAnnotations | object | `{}` | Annotations for the Deployment resource (not the pod). |
 | dynamicPlugins | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}}` | Dynamic plugin system configuration. |
 | dynamicPlugins.includes | list | `["dynamic-plugins.default.yaml"]` | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). |
@@ -202,6 +201,10 @@ Kubernetes: `>= 1.31.0-0`
 | env | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
 | envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
 | extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |
+| extraContainers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
+| extraInitContainers | list | `[]` | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. |
+| extraVolumeMounts | list | `[]` | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. |
+| extraVolumes | list | `[]` | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. |
 | fullnameOverride | string | `""` | Override the full resource name. |
 | global | object | `{"defaultStorageClass":"","imagePullSecrets":[],"imageRegistry":""}` | Global parameters shared with bitnami subcharts (postgresql, common). |
 | global.defaultStorageClass | string | `""` | Global default StorageClass for PVCs. |
@@ -214,7 +217,6 @@ Kubernetes: `>= 1.31.0-0`
 | image.digest | string | `""` | Overrides the image tag with an image digest. |
 | imagePullSecrets | list | `[]` | Secrets for pulling images from private registries (merged with global.imagePullSecrets). |
 | ingress | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}],"tls":[]}` | Kubernetes Ingress configuration. |
-| initContainers | list | `[]` | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. |
 | lightspeed | object | `{"configMaps":[{"create":true,"mountPath":"/app-root/lightspeed-stack.yaml","name":"stack","nameOverride":"","optional":false,"sourceFile":"lightspeed-stack.yaml","subPath":"lightspeed-stack.yaml"},{"create":true,"mountPath":"/app-root/config.yaml","name":"config","nameOverride":"","optional":false,"sourceFile":"config.yaml","subPath":"config.yaml"},{"create":true,"mountPath":"/app-root/rhdh-profile.py","name":"rhdh-profile","nameOverride":"","optional":false,"sourceFile":"rhdh-profile.py","subPath":"rhdh-profile.py"}],"enabled":true,"initContainer":{"args":["mkdir -p /tmp/data && echo 'Copying Lightspeed RAG data...' && cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ && cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ && mkdir -p /rag-content/vector_db/notebooks && chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db && echo 'Copy complete.'"],"command":["sh","-c"],"env":[],"image":{"digest":"","registry":"quay.io","repository":"redhat-ai-dev/rag-content","tag":"release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-rag-init","resources":{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"}],"ragVolume":{"emptyDir":{},"initMountPath":"/rag-content","mountPath":"/rag-content","name":"lightspeed-rag"},"runtimeVolume":{"emptyDir":{},"mountPath":"/tmp","name":"lightspeed-data","persistentVolumeClaim":{},"type":"emptyDir"},"secret":{"create":true,"name":"","optional":false,"sourceFile":"secret.yaml"},"sidecar":{"args":[],"command":[],"containerPort":8080,"env":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.5.2"},"imagePullPolicy":"IfNotPresent","name":"lightspeed-core","portName":"http-lightspeed","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}}` | Built-in Lightspeed AI feature configuration. |
 | livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":4}` | Liveness probe configuration. |
 | metrics | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` | Prometheus metrics configuration. |
@@ -240,8 +242,6 @@ Kubernetes: `>= 1.31.0-0`
 | test | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` | Test pod configuration for `helm test`. |
 | tolerations | list | `[]` | Tolerations for pod assignment. |
 | topologySpreadConstraints | list | `[]` | Topology spread constraints for pod scheduling. |
-| volumeMounts | list | `[]` | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. |
-| volumes | list | `[]` | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. |
 
 ## Opinionated RHDH deployment
 
@@ -264,9 +264,9 @@ appConfig:
   # Inline app-config.yaml for the instance
 env:
   # Additional environment variables (appended to system defaults)
-volumes:
+extraVolumes:
   # Additional volumes (appended to system defaults)
-volumeMounts:
+extraVolumeMounts:
   # Additional volume mounts (appended to system defaults)
 ```
 
@@ -282,11 +282,11 @@ quay.io/rhdh-community/rhdh:next
 
 System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided values are always **appended** after the system defaults:
 
-- `volumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
-- `volumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
+- `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
+- `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
 - `env` — appended after APP_CONFIG_backend_listen_port, BACKEND_SECRET, POSTGRES_* vars
-- `initContainers` — appended after install-dynamic-plugins and Lightspeed RAG init
-- `containers` — appended after the Lightspeed Core sidecar
+- `extraInitContainers` — appended after install-dynamic-plugins and Lightspeed RAG init
+- `extraContainers` — appended after the Lightspeed Core sidecar
 
 This means you never need to copy system defaults to add your own entries.
 

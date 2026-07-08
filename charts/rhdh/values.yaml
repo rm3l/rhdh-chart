@@ -145,11 +145,11 @@ autoscaling:
 
 # -- Additional volumes to add to the pod. These are ADDED to system-required volumes
 # (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them.
-volumes: []
+extraVolumes: []
 
 # -- Additional volume mounts to add to the main container. These are ADDED to
 # system-required mounts, never replacing them.
-volumeMounts: []
+extraVolumeMounts: []
 
 # -- Node labels for pod assignment.
 nodeSelector: {}
@@ -225,11 +225,11 @@ envFrom:
 
 # -- Additional sidecar containers. These are ADDED to system containers
 # (e.g. Lightspeed sidecar), never replacing them.
-containers: []
+extraContainers: []
 
 # -- Additional init containers. These are ADDED after system init containers
 # (install-dynamic-plugins, Lightspeed RAG init), never replacing them.
-initContainers: []
+extraInitContainers: []
 
 # -- Pod Disruption Budget configuration.
 podDisruptionBudget:

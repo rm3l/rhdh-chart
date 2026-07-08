@@ -144,7 +144,7 @@ spec:
         {{- end }}
         {{- end }}
         # --- User-additional volumes (appended) ---
-        {{- with .Values.volumes }}
+        {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       initContainers:
@@ -232,7 +232,7 @@ spec:
               mountPath: {{ $lightspeed.ragVolume.initMountPath | quote }}
         {{- end }}
         # --- User-additional init containers (appended) ---
-        {{- with .Values.initContainers }}
+        {{- with .Values.extraInitContainers }}
         {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
         {{- end }}
       containers:
@@ -339,7 +339,7 @@ spec:
               subPath: {{ .filename }}
             {{- end }}
             # --- User-additional volume mounts (appended) ---
-            {{- with .Values.volumeMounts }}
+            {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
         {{- if $lightspeed.enabled }}
@@ -389,6 +389,6 @@ spec:
             {{- end }}
         {{- end }}
         # --- User-additional sidecar containers (appended) ---
-        {{- with .Values.containers }}
+        {{- with .Values.extraContainers }}
         {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
         {{- end }}

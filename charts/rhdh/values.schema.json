@@ -240,11 +240,6 @@
             "title": "Security context for the main RHDH container (not the Lightspeed sidecar or init containers).",
             "type": "object"
         },
-        "containers": {
-            "default": [],
-            "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
-            "type": "array"
-        },
         "deploymentAnnotations": {
             "default": {},
             "title": "Annotations for the Deployment resource (not the pod).",
@@ -373,6 +368,26 @@
                 "type": "object"
             },
             "title": "Additional app-config files from existing ConfigMaps.",
+            "type": "array"
+        },
+        "extraContainers": {
+            "default": [],
+            "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
+            "type": "array"
+        },
+        "extraInitContainers": {
+            "default": [],
+            "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them.",
+            "type": "array"
+        },
+        "extraVolumeMounts": {
+            "default": [],
+            "title": "Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them.",
+            "type": "array"
+        },
+        "extraVolumes": {
+            "default": [],
+            "title": "Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them.",
             "type": "array"
         },
         "fullnameOverride": {
@@ -542,11 +557,6 @@
             },
             "title": "Kubernetes Ingress configuration.",
             "type": "object"
-        },
-        "initContainers": {
-            "default": [],
-            "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them.",
-            "type": "array"
         },
         "lightspeed": {
             "additionalProperties": true,
@@ -1440,16 +1450,6 @@
         "topologySpreadConstraints": {
             "default": [],
             "title": "Topology spread constraints for pod scheduling.",
-            "type": "array"
-        },
-        "volumeMounts": {
-            "default": [],
-            "title": "Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them.",
-            "type": "array"
-        },
-        "volumes": {
-            "default": [],
-            "title": "Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them.",
             "type": "array"
         }
     },

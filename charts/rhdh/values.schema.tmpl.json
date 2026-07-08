@@ -329,12 +329,12 @@
                 }
             }
         },
-        "volumes": {
+        "extraVolumes": {
             "title": "Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them.",
             "type": "array",
             "default": []
         },
-        "volumeMounts": {
+        "extraVolumeMounts": {
             "title": "Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them.",
             "type": "array",
             "default": []
@@ -458,12 +458,12 @@
                 }
             }
         },
-        "containers": {
+        "extraContainers": {
             "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
             "type": "array",
             "default": []
         },
-        "initContainers": {
+        "extraInitContainers": {
             "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them.",
             "type": "array",
             "default": []

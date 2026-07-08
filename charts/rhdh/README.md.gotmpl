@@ -34,7 +34,7 @@ helm install my-rhdh redhat-developer/redhat-developer-hub --version {{ template
 
 This chart bootstraps a [Red Hat Developer Hub](https://developers.redhat.com/rhdh) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`volumes`, `volumeMounts`, `env`, `initContainers`, `containers`) are always appended — never replacing the defaults.
+Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `env`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
 
 ## Prerequisites
 
@@ -178,9 +178,9 @@ appConfig:
   # Inline app-config.yaml for the instance
 env:
   # Additional environment variables (appended to system defaults)
-volumes:
+extraVolumes:
   # Additional volumes (appended to system defaults)
-volumeMounts:
+extraVolumeMounts:
   # Additional volume mounts (appended to system defaults)
 ```
 
@@ -196,11 +196,11 @@ quay.io/rhdh-community/rhdh:next
 
 System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided values are always **appended** after the system defaults:
 
-- `volumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
-- `volumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
+- `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
+- `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
 - `env` — appended after APP_CONFIG_backend_listen_port, BACKEND_SECRET, POSTGRES_* vars
-- `initContainers` — appended after install-dynamic-plugins and Lightspeed RAG init
-- `containers` — appended after the Lightspeed Core sidecar
+- `extraInitContainers` — appended after install-dynamic-plugins and Lightspeed RAG init
+- `extraContainers` — appended after the Lightspeed Core sidecar
 
 This means you never need to copy system defaults to add your own entries.
 

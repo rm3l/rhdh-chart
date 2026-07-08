@@ -150,14 +150,10 @@ spec:
         - name: install-dynamic-plugins
           image: {{ include "rhdh.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- with .Values.containerSecurityContext }}
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            runAsNonRoot: true
-            seccompProfile:
-              type: "RuntimeDefault"
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           command:
             - ./install-dynamic-plugins.sh
             - /dynamic-plugins-root

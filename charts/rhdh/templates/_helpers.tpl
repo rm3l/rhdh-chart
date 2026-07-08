@@ -116,10 +116,10 @@ Returns custom hostname.
 {{- define "rhdh.hostname" -}}
     {{- if .Values.host -}}
         {{- .Values.host -}}
-    {{- else if .Values.clusterRouterBase -}}
-        {{- printf "%s-%s.%s" (include "rhdh.fullname" .) .Release.Namespace .Values.clusterRouterBase -}}
+    {{- else if .Values.openshift.clusterRouterBase -}}
+        {{- printf "%s-%s.%s" (include "rhdh.fullname" .) .Release.Namespace .Values.openshift.clusterRouterBase -}}
     {{- else -}}
-        {{ fail "Unable to generate hostname: set host or clusterRouterBase" }}
+        {{ fail "Unable to generate hostname: set host or openshift.clusterRouterBase" }}
     {{- end -}}
 {{- end -}}
 

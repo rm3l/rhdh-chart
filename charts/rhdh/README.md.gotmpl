@@ -67,10 +67,11 @@ Once the chart has been added, install this chart. However before doing so, plea
 - To get proper connection between frontend and backend of Backstage please update the `apps.example.com` to match your cluster host:
 
    ```yaml
-   clusterRouterBase: apps.example.com
+   openshift:
+     clusterRouterBase: apps.example.com
    ```
 
-   > Tip: you can use `helm upgrade -i --set clusterRouterBase=apps.example.com ...` instead of a value file
+   > Tip: you can use `helm upgrade -i --set openshift.clusterRouterBase=apps.example.com ...` instead of a value file
 
 - If your cluster doesn't provide PVCs, you should disable PostgreSQL persistence via:
 
@@ -206,18 +207,19 @@ This means you never need to copy system defaults to add your own entries.
 
 ### OpenShift Routes
 
-This chart offers an OpenShift `Route` resource enabled by default. In order to use the chart without it, please set `route.enabled` to `false` and switch to the `Ingress` resource via `ingress` values.
+This chart offers an OpenShift `Route` resource enabled by default. In order to use the chart without it, please set `openshift.route.enabled` to `false` and switch to the `Ingress` resource via `ingress` values.
 
-Routes can be further configured via the `route` field.
+Routes can be further configured via the `openshift.route` field.
 
 To manually provide the Backstage pod with the right context, please add the following value:
 
 ```yaml
 # values.yaml
-clusterRouterBase: apps.example.com
+openshift:
+  clusterRouterBase: apps.example.com
 ```
 
-> Tip: you can use `helm upgrade -i --set clusterRouterBase=apps.example.com ...` instead of a value file
+> Tip: you can use `helm upgrade -i --set openshift.clusterRouterBase=apps.example.com ...` instead of a value file
 
 Custom hosts are also supported via the following shorthand:
 
@@ -226,9 +228,9 @@ Custom hosts are also supported via the following shorthand:
 host: backstage.example.com
 ```
 
-> Note: Setting either `host` or `clusterRouterBase` will disable the automatic hostname discovery.
+> Note: Setting either `host` or `openshift.clusterRouterBase` will disable the automatic hostname discovery.
         When both fields are set, `host` will take precedence.
-        These are just templating shorthands. For full manual configuration please pay attention to values under the `route` key.
+        These are just templating shorthands. For full manual configuration please pay attention to values under the `openshift.route` key.
 
 Any custom modifications to how backstage is being exposed may require additional changes to the `values.yaml`:
 
@@ -270,8 +272,9 @@ To deploy this chart on vanilla Kubernetes or any other non-OCP platform, apply 
 ```yaml
 # values.yaml
 host: # Specify your own Ingress host
-route:
-  enabled: false  # OpenShift Routes do not exist on vanilla Kubernetes
+openshift:
+  route:
+    enabled: false  # OpenShift Routes do not exist on vanilla Kubernetes
 ingress:
   enabled: true  # Use Kubernetes Ingress instead of OpenShift Route
 podSecurityContext:  # Vanilla Kubernetes doesn't feature OpenShift default SCCs with dynamic UIDs, adjust accordingly to the deployed image

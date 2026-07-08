@@ -241,11 +241,8 @@ podDisruptionBudget:
   minAvailable: ""
   maxUnavailable: 1
 
-# -- Custom hostname. Overrides clusterRouterBase for URL generation.
+# -- Custom hostname. Overrides openshift.clusterRouterBase for URL generation.
 host: ""
-
-# -- Cluster router base domain used to auto-generate the hostname.
-clusterRouterBase: "apps.example.com"
 
 # -- Service-to-service authentication configuration.
 auth:
@@ -422,21 +419,25 @@ lightspeed:
       seccompProfile:
         type: "RuntimeDefault"
 
-# -- OpenShift Route configuration.
-route:
-  annotations: {}
-  enabled: true
-  host: "{{ .Values.host }}"
-  path: "/"
-  wildcardPolicy: "None"
-  tls:
+# -- OpenShift-specific configuration.
+openshift:
+  # -- Cluster router base domain used to auto-generate the hostname.
+  clusterRouterBase: "apps.example.com"
+  # -- OpenShift Route configuration.
+  route:
+    annotations: {}
     enabled: true
-    termination: "edge"
-    certificate: ""
-    key: ""
-    caCertificate: ""
-    destinationCACertificate: ""
-    insecureEdgeTerminationPolicy: "Redirect"
+    host: "{{ .Values.host }}"
+    path: "/"
+    wildcardPolicy: "None"
+    tls:
+      enabled: true
+      termination: "edge"
+      certificate: ""
+      key: ""
+      caCertificate: ""
+      destinationCACertificate: ""
+      insecureEdgeTerminationPolicy: "Redirect"
 
 # -- Built-in PostgreSQL database (bitnami subchart).
 postgresql:

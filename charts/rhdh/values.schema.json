@@ -200,11 +200,6 @@
             "title": "Catalog index configuration for automatic plugin discovery.",
             "type": "object"
         },
-        "clusterRouterBase": {
-            "default": "apps.example.com",
-            "title": "Cluster router base domain used to auto-generate the hostname.",
-            "type": "string"
-        },
         "command": {
             "default": [],
             "items": {
@@ -439,7 +434,7 @@
         },
         "host": {
             "default": "",
-            "title": "Custom hostname. Overrides clusterRouterBase for URL generation.",
+            "title": "Custom hostname. Overrides openshift.clusterRouterBase for URL generation.",
             "type": "string"
         },
         "hostAliases": {
@@ -898,6 +893,106 @@
             "title": "Node selector for pod assignment.",
             "type": "object"
         },
+        "openshift": {
+            "additionalProperties": false,
+            "properties": {
+                "clusterRouterBase": {
+                    "default": "apps.example.com",
+                    "title": "Cluster router base domain used to auto-generate the hostname.",
+                    "type": "string"
+                },
+                "route": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "annotations": {
+                            "default": {},
+                            "title": "Route specific annotations.",
+                            "type": "object"
+                        },
+                        "enabled": {
+                            "default": true,
+                            "title": "Enable the creation of the route resource.",
+                            "type": "boolean"
+                        },
+                        "host": {
+                            "default": "{{ .Values.host }}",
+                            "title": "Set the host attribute to a custom value.",
+                            "type": "string"
+                        },
+                        "path": {
+                            "default": "/",
+                            "title": "Path that the router watches for, to route traffic for to the service.",
+                            "type": "string"
+                        },
+                        "tls": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "caCertificate": {
+                                    "default": "",
+                                    "title": "Cert authority certificate contents.",
+                                    "type": "string"
+                                },
+                                "certificate": {
+                                    "default": "",
+                                    "title": "Certificate contents.",
+                                    "type": "string"
+                                },
+                                "destinationCACertificate": {
+                                    "default": "",
+                                    "title": "Contents of the ca certificate of the final destination.",
+                                    "type": "string"
+                                },
+                                "enabled": {
+                                    "default": true,
+                                    "title": "Enable TLS configuration for the host defined at `openshift.route.host` parameter.",
+                                    "type": "boolean"
+                                },
+                                "insecureEdgeTerminationPolicy": {
+                                    "default": "Redirect",
+                                    "enum": [
+                                        "Redirect",
+                                        "None",
+                                        ""
+                                    ],
+                                    "title": "Indicates the desired behavior for insecure connections to a route.",
+                                    "type": "string"
+                                },
+                                "key": {
+                                    "default": "",
+                                    "title": "Key file contents.",
+                                    "type": "string"
+                                },
+                                "termination": {
+                                    "default": "edge",
+                                    "enum": [
+                                        "edge",
+                                        "reencrypt",
+                                        "passthrough"
+                                    ],
+                                    "title": "Specify TLS termination.",
+                                    "type": "string"
+                                }
+                            },
+                            "title": "Route TLS parameters.",
+                            "type": "object"
+                        },
+                        "wildcardPolicy": {
+                            "default": "None",
+                            "enum": [
+                                "None",
+                                "Subdomain"
+                            ],
+                            "title": "Wildcard policy if any for the route.",
+                            "type": "string"
+                        }
+                    },
+                    "title": "OpenShift Route parameters.",
+                    "type": "object"
+                }
+            },
+            "title": "OpenShift-specific configuration.",
+            "type": "object"
+        },
         "orchestrator": {
             "additionalProperties": false,
             "properties": {
@@ -1194,94 +1289,6 @@
             "minimum": 0,
             "title": "Number of old ReplicaSets to retain.",
             "type": "integer"
-        },
-        "route": {
-            "additionalProperties": false,
-            "properties": {
-                "annotations": {
-                    "default": {},
-                    "title": "Route specific annotations.",
-                    "type": "object"
-                },
-                "enabled": {
-                    "default": true,
-                    "title": "Enable the creation of the route resource.",
-                    "type": "boolean"
-                },
-                "host": {
-                    "default": "{{ .Values.host }}",
-                    "title": "Set the host attribute to a custom value.",
-                    "type": "string"
-                },
-                "path": {
-                    "default": "/",
-                    "title": "Path that the router watches for, to route traffic for to the service.",
-                    "type": "string"
-                },
-                "tls": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "caCertificate": {
-                            "default": "",
-                            "title": "Cert authority certificate contents.",
-                            "type": "string"
-                        },
-                        "certificate": {
-                            "default": "",
-                            "title": "Certificate contents.",
-                            "type": "string"
-                        },
-                        "destinationCACertificate": {
-                            "default": "",
-                            "title": "Contents of the ca certificate of the final destination.",
-                            "type": "string"
-                        },
-                        "enabled": {
-                            "default": true,
-                            "title": "Enable TLS configuration for the host defined at `route.host` parameter.",
-                            "type": "boolean"
-                        },
-                        "insecureEdgeTerminationPolicy": {
-                            "default": "Redirect",
-                            "enum": [
-                                "Redirect",
-                                "None",
-                                ""
-                            ],
-                            "title": "Indicates the desired behavior for insecure connections to a route.",
-                            "type": "string"
-                        },
-                        "key": {
-                            "default": "",
-                            "title": "Key file contents.",
-                            "type": "string"
-                        },
-                        "termination": {
-                            "default": "edge",
-                            "enum": [
-                                "edge",
-                                "reencrypt",
-                                "passthrough"
-                            ],
-                            "title": "Specify TLS termination.",
-                            "type": "string"
-                        }
-                    },
-                    "title": "Route TLS parameters.",
-                    "type": "object"
-                },
-                "wildcardPolicy": {
-                    "default": "None",
-                    "enum": [
-                        "None",
-                        "Subdomain"
-                    ],
-                    "title": "Wildcard policy if any for the route.",
-                    "type": "string"
-                }
-            },
-            "title": "OpenShift Route parameters.",
-            "type": "object"
         },
         "service": {
             "additionalProperties": false,

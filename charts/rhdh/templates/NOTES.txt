@@ -1,6 +1,6 @@
 Red Hat Developer Hub has been installed.
 
-{{- if .Values.route.enabled }}
+{{- if .Values.openshift.route.enabled }}
 Your application is accessible via OpenShift Route:
   {{ include "rhdh.hostname" . }}
 {{- else if .Values.ingress.enabled }}

@@ -206,7 +206,7 @@ runs:
           # Set fsGroup so shared volumes (e.g. RAG data) are group-writable
           # across init containers and sidecars that may run as different UIDs.
           EXTRA_ARGS+=(
-            "--set route.enabled=false"
+            "--set openshift.route.enabled=false"
             "--set postgresql.primary.persistence.enabled=false"
             "--set podSecurityContext.fsGroup=1001"
           )

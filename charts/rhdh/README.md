@@ -76,10 +76,11 @@ Once the chart has been added, install this chart. However before doing so, plea
 - To get proper connection between frontend and backend of Backstage please update the `apps.example.com` to match your cluster host:
 
    ```yaml
-   clusterRouterBase: apps.example.com
+   openshift:
+     clusterRouterBase: apps.example.com
    ```
 
-   > Tip: you can use `helm upgrade -i --set clusterRouterBase=apps.example.com ...` instead of a value file
+   > Tip: you can use `helm upgrade -i --set openshift.clusterRouterBase=apps.example.com ...` instead of a value file
 
 - If your cluster doesn't provide PVCs, you should disable PostgreSQL persistence via:
 
@@ -185,7 +186,6 @@ Kubernetes: `>= 1.31.0-0`
 | autoscaling | Horizontal Pod Autoscaler configuration. | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` |
 | catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10"}}` |
 | catalogIndex.extraImages | Extra catalog index images for additional plugin discovery in the Extensions UI. Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional. Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling). | list | `[]` |
-| clusterRouterBase | Cluster router base domain used to auto-generate the hostname. | string | `"apps.example.com"` |
 | command | Override the container command. | list | `[]` |
 | commonAnnotations | Annotations applied to ALL chart resources. | object | `{}` |
 | commonLabels | Labels applied to ALL chart resources. | object | `{}` |
@@ -213,7 +213,7 @@ Kubernetes: `>= 1.31.0-0`
 | global.defaultStorageClass | Global default StorageClass for PVCs. | string | `""` |
 | global.imagePullSecrets | Global Docker registry secret names. | list | `[]` |
 | global.imageRegistry | Global Docker image registry. Overrides per-image registries for all containers. | string | `""` |
-| host | Custom hostname. Overrides clusterRouterBase for URL generation. | string | `""` |
+| host | Custom hostname. Overrides openshift.clusterRouterBase for URL generation. | string | `""` |
 | hostAliases | Host aliases for /etc/hosts entries. | list | `[]` |
 | httpRoute | Gateway API HTTPRoute configuration. | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` |
 | image | Container image configuration. | object | `{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"rhdh-community/rhdh","tag":"next"}` |
@@ -225,6 +225,9 @@ Kubernetes: `>= 1.31.0-0`
 | metrics | Prometheus metrics configuration. | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` |
 | nameOverride | Override the chart name used in resource naming. | string | `""` |
 | nodeSelector | Node labels for pod assignment. | object | `{}` |
+| openshift | OpenShift-specific configuration. | object | `{"clusterRouterBase":"apps.example.com","route":{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}}` |
+| openshift.clusterRouterBase | Cluster router base domain used to auto-generate the hostname. | string | `"apps.example.com"` |
+| openshift.route | OpenShift Route configuration. | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` |
 | orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"createDBJobImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","dataIndexImage":"","dbCreationJobActiveDeadlineSeconds":120,"dbCreationJobBackoffLimit":2,"dbCreationJobTTLSecondsAfterFinished":null,"eventing":{"broker":{"name":"","namespace":""}},"externalDBHost":"","externalDBName":"","externalDBPort":"","externalDBSecretRef":"","initContainerImage":"{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}","jobServiceImage":"","monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
 | podAnnotations | Annotations to add to the pod. | object | `{}` |
 | podDisruptionBudget | Pod Disruption Budget configuration. | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` |
@@ -235,7 +238,6 @@ Kubernetes: `>= 1.31.0-0`
 | replicaCount | Number of desired pods. | int | `1` |
 | resources | Resource requests and limits for the main RHDH container. | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` |
 | revisionHistoryLimit | Number of old ReplicaSets to retain. | int | `10` |
-| route | OpenShift Route configuration. | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` |
 | service | Service configuration. | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"loadBalancerIP":"","loadBalancerSourceRanges":[],"port":7007,"sessionAffinity":"","type":"ClusterIP"}` |
 | service.extraPorts | Additional service ports. | list | `[{"name":"http-metrics","port":9464,"targetPort":9464}]` |
 | serviceAccount | ServiceAccount configuration. | object | `{"annotations":{},"automount":true,"create":false,"name":""}` |
@@ -295,18 +297,19 @@ This means you never need to copy system defaults to add your own entries.
 
 ### OpenShift Routes
 
-This chart offers an OpenShift `Route` resource enabled by default. In order to use the chart without it, please set `route.enabled` to `false` and switch to the `Ingress` resource via `ingress` values.
+This chart offers an OpenShift `Route` resource enabled by default. In order to use the chart without it, please set `openshift.route.enabled` to `false` and switch to the `Ingress` resource via `ingress` values.
 
-Routes can be further configured via the `route` field.
+Routes can be further configured via the `openshift.route` field.
 
 To manually provide the Backstage pod with the right context, please add the following value:
 
 ```yaml
 # values.yaml
-clusterRouterBase: apps.example.com
+openshift:
+  clusterRouterBase: apps.example.com
 ```
 
-> Tip: you can use `helm upgrade -i --set clusterRouterBase=apps.example.com ...` instead of a value file
+> Tip: you can use `helm upgrade -i --set openshift.clusterRouterBase=apps.example.com ...` instead of a value file
 
 Custom hosts are also supported via the following shorthand:
 
@@ -315,9 +318,9 @@ Custom hosts are also supported via the following shorthand:
 host: backstage.example.com
 ```
 
-> Note: Setting either `host` or `clusterRouterBase` will disable the automatic hostname discovery.
+> Note: Setting either `host` or `openshift.clusterRouterBase` will disable the automatic hostname discovery.
         When both fields are set, `host` will take precedence.
-        These are just templating shorthands. For full manual configuration please pay attention to values under the `route` key.
+        These are just templating shorthands. For full manual configuration please pay attention to values under the `openshift.route` key.
 
 Any custom modifications to how backstage is being exposed may require additional changes to the `values.yaml`:
 
@@ -359,8 +362,9 @@ To deploy this chart on vanilla Kubernetes or any other non-OCP platform, apply 
 ```yaml
 # values.yaml
 host: # Specify your own Ingress host
-route:
-  enabled: false  # OpenShift Routes do not exist on vanilla Kubernetes
+openshift:
+  route:
+    enabled: false  # OpenShift Routes do not exist on vanilla Kubernetes
 ingress:
   enabled: true  # Use Kubernetes Ingress instead of OpenShift Route
 podSecurityContext:  # Vanilla Kubernetes doesn't feature OpenShift default SCCs with dynamic UIDs, adjust accordingly to the deployed image

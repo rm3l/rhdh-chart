@@ -568,6 +568,31 @@
                         },
                         "required": ["package"]
                     }
+                },
+                "volume": {
+                    "title": "Volume configuration for the dynamic plugins root directory.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "title": "Volume type.",
+                            "type": "string",
+                            "enum": ["ephemeral", "emptyDir", "pvc"],
+                            "default": "ephemeral"
+                        },
+                        "ephemeral": {
+                            "title": "Raw Kubernetes ephemeral volume spec. Used when type is ephemeral.",
+                            "type": "object"
+                        },
+                        "emptyDir": {
+                            "title": "Raw Kubernetes emptyDir volume spec. Used when type is emptyDir.",
+                            "type": "object"
+                        },
+                        "pvc": {
+                            "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
+                            "type": "object"
+                        }
+                    }
                 }
             }
         },

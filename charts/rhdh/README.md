@@ -191,9 +191,14 @@ Kubernetes: `>= 1.31.0-0`
 | containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` | Security context for the main RHDH container (not the Lightspeed sidecar or init containers). |
 | containers | list | `[]` | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. |
 | deploymentAnnotations | object | `{}` | Annotations for the Deployment resource (not the pod). |
-| dynamicPlugins | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[]}` | Dynamic plugin system configuration. |
+| dynamicPlugins | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}}` | Dynamic plugin system configuration. |
 | dynamicPlugins.includes | list | `["dynamic-plugins.default.yaml"]` | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). |
 | dynamicPlugins.plugins | list | `[]` | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. |
+| dynamicPlugins.volume | object | `{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}` | Volume configuration for the dynamic plugins root directory. |
+| dynamicPlugins.volume.emptyDir | object | `{}` | Raw Kubernetes emptyDir volume spec. Used when type is "emptyDir". |
+| dynamicPlugins.volume.ephemeral | object | 5Gi ephemeral PVC with ReadWriteOnce access | Raw Kubernetes ephemeral volume spec. Used when type is "ephemeral". |
+| dynamicPlugins.volume.pvc | object | `{"claimName":""}` | Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc". |
+| dynamicPlugins.volume.type | string | `"ephemeral"` | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). |
 | env | list | `[]` | Additional environment variables for the main container. These are ADDED to system env vars (BACKEND_SECRET, DB credentials, etc.), never replacing them. |
 | envFrom | object | `{"configMaps":[],"secrets":[]}` | ConfigMaps and Secrets to inject as environment variables via envFrom. |
 | extraAppConfig | list | `[]` | Additional app-config files from existing ConfigMaps. |

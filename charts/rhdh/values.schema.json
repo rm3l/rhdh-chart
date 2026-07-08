@@ -291,6 +291,35 @@
                     },
                     "title": "List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference.",
                     "type": "array"
+                },
+                "volume": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "emptyDir": {
+                            "title": "Raw Kubernetes emptyDir volume spec. Used when type is emptyDir.",
+                            "type": "object"
+                        },
+                        "ephemeral": {
+                            "title": "Raw Kubernetes ephemeral volume spec. Used when type is ephemeral.",
+                            "type": "object"
+                        },
+                        "pvc": {
+                            "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
+                            "type": "object"
+                        },
+                        "type": {
+                            "default": "ephemeral",
+                            "enum": [
+                                "ephemeral",
+                                "emptyDir",
+                                "pvc"
+                            ],
+                            "title": "Volume type.",
+                            "type": "string"
+                        }
+                    },
+                    "title": "Volume configuration for the dynamic plugins root directory.",
+                    "type": "object"
                 }
             },
             "title": "Dynamic plugin system configuration.",

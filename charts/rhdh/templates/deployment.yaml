@@ -83,14 +83,16 @@ spec:
       volumes:
         # --- System volumes (hardcoded, never replaced) ---
         - name: dynamic-plugins-root
+          {{- if eq .Values.dynamicPlugins.volume.type "emptyDir" }}
+          emptyDir:
+            {{- toYaml .Values.dynamicPlugins.volume.emptyDir | nindent 12 }}
+          {{- else if eq .Values.dynamicPlugins.volume.type "pvc" }}
+          persistentVolumeClaim:
+            {{- toYaml .Values.dynamicPlugins.volume.pvc | nindent 12 }}
+          {{- else }}
           ephemeral:
-            volumeClaimTemplate:
-              spec:
-                accessModes:
-                  - ReadWriteOnce
-                resources:
-                  requests:
-                    storage: 5Gi
+            {{- toYaml .Values.dynamicPlugins.volume.ephemeral | nindent 12 }}
+          {{- end }}
         - name: dynamic-plugins
           configMap:
             defaultMode: 420

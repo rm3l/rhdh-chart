@@ -13,6 +13,10 @@ metadata:
   name: {{ include "rhdh.lightspeed.configMapName" (dict "root" $ "configMap" $configMap) }}
   labels:
     {{- include "rhdh.labels" $ | nindent 4 }}
+  {{- with $.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 data:
   {{ $configMap.subPath }}: |
 {{ include "rhdh.lightspeed.fileContent" (dict "context" $ "file" $configMap.sourceFile "optional" $configMap.optional "ref" (printf "lightspeed.configMaps[%s].sourceFile" $configMap.name)) | nindent 4 }}

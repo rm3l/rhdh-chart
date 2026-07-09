@@ -3,7 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Release.Name }}-allow-infra-ns-to-workflow-ns
-  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
 spec:
   podSelector: {}
   ingress:
@@ -22,7 +23,8 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Release.Name }}-allow-external-communication
-  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
 spec:
   podSelector: {}
   policyTypes:
@@ -37,7 +39,8 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Release.Name }}-allow-intra-network
-  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
 spec:
   podSelector: {}
   policyTypes:
@@ -52,7 +55,8 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Release.Name }}-allow-monitoring-to-sonataflow-and-workflows
-  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "rhdh.labels" . | nindent 4 }}
 spec:
   podSelector: {}
   policyTypes:

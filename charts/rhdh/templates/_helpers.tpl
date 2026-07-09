@@ -51,6 +51,7 @@ Selector labels
 {{- define "rhdh.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "rhdh.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: backstage
 {{- end }}
 
 {{/*

@@ -9,10 +9,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rhdh.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage
   {{- if or .Values.commonAnnotations .Values.deploymentAnnotations }}
   annotations:
     {{- with .Values.commonAnnotations }}
@@ -34,12 +32,10 @@ spec:
   selector:
     matchLabels:
       {{- include "rhdh.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: backstage
   template:
     metadata:
       labels:
         {{- include "rhdh.labels" . | nindent 8 }}
-        app.kubernetes.io/component: backstage
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

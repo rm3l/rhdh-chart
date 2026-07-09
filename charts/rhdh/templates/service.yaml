@@ -2,10 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "rhdh.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage
   {{- if or .Values.commonAnnotations .Values.service.annotations }}
   annotations:
     {{- with .Values.commonAnnotations }}
@@ -46,4 +44,3 @@ spec:
     {{- end }}
   selector:
     {{- include "rhdh.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage

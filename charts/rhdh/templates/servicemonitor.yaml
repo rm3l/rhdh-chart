@@ -3,10 +3,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "rhdh.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage
     {{- with .Values.metrics.serviceMonitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -26,7 +24,6 @@ spec:
   selector:
     matchLabels:
       {{- include "rhdh.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: backstage
   endpoints:
   - port: {{ .Values.metrics.serviceMonitor.port | quote }}
     path: {{ .Values.metrics.serviceMonitor.path }}

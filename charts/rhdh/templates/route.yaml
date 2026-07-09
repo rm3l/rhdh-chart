@@ -3,10 +3,8 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ include "rhdh.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage
   {{- if or .Values.commonAnnotations .Values.openshift.route.annotations }}
   annotations:
     {{- with .Values.openshift.route.annotations }}

@@ -11,7 +11,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "rhdh.lightspeed.configMapName" (dict "root" $ "configMap" $configMap) }}
-  namespace: {{ $.Release.Namespace | quote }}
+  labels:
+    {{- include "rhdh.labels" $ | nindent 4 }}
 data:
   {{ $configMap.subPath }}: |
 {{ include "rhdh.lightspeed.fileContent" (dict "context" $ "file" $configMap.sourceFile "optional" $configMap.optional "ref" (printf "lightspeed.configMaps[%s].sourceFile" $configMap.name)) | nindent 4 }}

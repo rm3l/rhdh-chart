@@ -3,10 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "rhdh.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backstage
   {{- if or .Values.commonAnnotations .Values.ingress.annotations }}
   annotations:
     {{- with .Values.commonAnnotations }}

@@ -115,6 +115,11 @@
                     "type": "object",
                     "default": {}
                 },
+                "labels": {
+                    "title": "Additional labels for the ServiceAccount.",
+                    "type": "object",
+                    "default": {}
+                },
                 "name": {
                     "title": "The name of the service account to use. If not set and create is true, a name is generated using the fullname template.",
                     "type": "string",
@@ -182,6 +187,11 @@
                     "type": "object",
                     "default": {}
                 },
+                "nodePort": {
+                    "title": "Node port for NodePort/LoadBalancer service types (range 30000-32767).",
+                    "type": ["string", "integer"],
+                    "default": ""
+                },
                 "sessionAffinity": {
                     "title": "Session affinity.",
                     "type": "string",
@@ -209,6 +219,19 @@
                     "title": "External traffic policy.",
                     "type": "string",
                     "default": ""
+                },
+                "ipFamilyPolicy": {
+                    "title": "IP family policy for dual-stack networking.",
+                    "type": "string",
+                    "default": ""
+                },
+                "ipFamilies": {
+                    "title": "IP families for dual-stack networking.",
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -253,6 +276,11 @@
                     "title": "Enable the creation of the HTTPRoute resource.",
                     "type": "boolean",
                     "default": false
+                },
+                "labels": {
+                    "title": "Additional labels for the HTTPRoute resource.",
+                    "type": "object",
+                    "default": {}
                 },
                 "annotations": {
                     "title": "HTTPRoute annotations.",

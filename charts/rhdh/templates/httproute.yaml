@@ -7,13 +7,16 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
+    {{- with .Values.httpRoute.labels }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
   {{- if or .Values.commonAnnotations .Values.httpRoute.annotations }}
   annotations:
     {{- with .Values.commonAnnotations }}
-    {{- toYaml . | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
     {{- end }}
     {{- with .Values.httpRoute.annotations }}
-    {{- toYaml . | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
     {{- end }}
   {{- end }}
 spec:
@@ -29,11 +32,18 @@ spec:
     {{- range .Values.httpRoute.rules }}
     {{- with .matches }}
     - matches:
-      {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
     {{- end }}
     {{- with .filters }}
       filters:
-      {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .timeouts }}
+      timeouts:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- if .name }}
+      name: {{ .name }}
     {{- end }}
       backendRefs:
         - name: {{ $fullName }}

@@ -215,7 +215,8 @@ Kubernetes: `>= 1.31.0-0`
 | global.imageRegistry | Global Docker image registry. Overrides per-image registries for all containers. | string | `""` |
 | host | Custom hostname. Overrides openshift.clusterRouterBase for URL generation. | string | `""` |
 | hostAliases | Host aliases for /etc/hosts entries. | list | `[]` |
-| httpRoute | Gateway API HTTPRoute configuration. | object | `{"annotations":{},"enabled":false,"hostnames":[],"parentRefs":[],"rules":[]}` |
+| httpRoute | Gateway API HTTPRoute configuration. | object | `{"annotations":{},"enabled":false,"hostnames":[],"labels":{},"parentRefs":[],"rules":[]}` |
+| httpRoute.labels | Additional labels for the HTTPRoute resource. | object | `{}` |
 | image | Container image configuration. | object | `{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"rhdh-community/rhdh","tag":"next"}` |
 | image.digest | Overrides the image tag with an image digest. | string | `""` |
 | imagePullSecrets | Secrets for pulling images from private registries (merged with global.imagePullSecrets). | list | `[]` |
@@ -274,9 +275,13 @@ Kubernetes: `>= 1.31.0-0`
 | replicaCount | Number of desired pods. | int | `1` |
 | resources | Resource requests and limits for the main RHDH container. | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}` |
 | revisionHistoryLimit | Number of old ReplicaSets to retain. | int | `10` |
-| service | Service configuration. | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"loadBalancerIP":"","loadBalancerSourceRanges":[],"port":7007,"sessionAffinity":"","type":"ClusterIP"}` |
+| service | Service configuration. | object | `{"annotations":{},"clusterIP":"","externalTrafficPolicy":"","extraPorts":[{"name":"http-metrics","port":9464,"targetPort":9464}],"ipFamilies":[],"ipFamilyPolicy":"","loadBalancerIP":"","loadBalancerSourceRanges":[],"nodePort":"","port":7007,"sessionAffinity":"","type":"ClusterIP"}` |
 | service.extraPorts | Additional service ports. | list | `[{"name":"http-metrics","port":9464,"targetPort":9464}]` |
-| serviceAccount | ServiceAccount configuration. | object | `{"annotations":{},"automount":true,"create":false,"name":""}` |
+| service.ipFamilies | IP families for dual-stack networking. | list | `[]` |
+| service.ipFamilyPolicy | IP family policy for dual-stack networking. | string | `""` |
+| service.nodePort | Node port for NodePort/LoadBalancer service types (range 30000-32767). | string | `""` |
+| serviceAccount | ServiceAccount configuration. | object | `{"annotations":{},"automount":true,"create":false,"labels":{},"name":""}` |
+| serviceAccount.labels | Additional labels for the ServiceAccount. | object | `{}` |
 | serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |

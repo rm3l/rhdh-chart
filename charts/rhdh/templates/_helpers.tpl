@@ -159,9 +159,14 @@ Returns the PostgreSQL admin password key.
 
 {{/*
 Returns the PostgreSQL hostname.
+Appends -primary when postgresql.architecture is "replication".
 */}}
 {{- define "rhdh.postgresql.host" -}}
+{{- if eq (default "standalone" .Values.postgresql.architecture) "replication" -}}
+{{- printf "%s-postgresql-primary" .Release.Name -}}
+{{- else -}}
 {{- printf "%s-postgresql" .Release.Name -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

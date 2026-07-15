@@ -165,6 +165,8 @@ strategy: {}
 serviceAccount:
   create: false
   automount: true
+  # -- Additional labels for the ServiceAccount.
+  labels: {}
   annotations: {}
   # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
   name: ""
@@ -301,11 +303,17 @@ service:
       port: 9464
       targetPort: 9464
   annotations: {}
+  # -- Node port for NodePort/LoadBalancer service types (range 30000-32767).
+  nodePort: ""
   sessionAffinity: ""
   clusterIP: ""
   loadBalancerIP: ""
   loadBalancerSourceRanges: []
   externalTrafficPolicy: ""
+  # -- IP family policy for dual-stack networking.
+  ipFamilyPolicy: ""
+  # -- IP families for dual-stack networking.
+  ipFamilies: []
 
 # -- Kubernetes Ingress configuration.
 ingress:
@@ -322,6 +330,8 @@ ingress:
 # -- Gateway API HTTPRoute configuration.
 httpRoute:
   enabled: false
+  # -- Additional labels for the HTTPRoute resource.
+  labels: {}
   annotations: {}
   parentRefs: []
   hostnames: []

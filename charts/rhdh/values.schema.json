@@ -460,6 +460,11 @@
                     "title": "Hostnames.",
                     "type": "array"
                 },
+                "labels": {
+                    "default": {},
+                    "title": "Additional labels for the HTTPRoute resource.",
+                    "type": "object"
+                },
                 "parentRefs": {
                     "default": [],
                     "title": "Parent references.",
@@ -1417,6 +1422,19 @@
                     "title": "Additional service ports.",
                     "type": "array"
                 },
+                "ipFamilies": {
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "IP families for dual-stack networking.",
+                    "type": "array"
+                },
+                "ipFamilyPolicy": {
+                    "default": "",
+                    "title": "IP family policy for dual-stack networking.",
+                    "type": "string"
+                },
                 "loadBalancerIP": {
                     "default": "",
                     "title": "LoadBalancer IP.",
@@ -1429,6 +1447,14 @@
                     },
                     "title": "LoadBalancer source ranges.",
                     "type": "array"
+                },
+                "nodePort": {
+                    "default": "",
+                    "title": "Node port for NodePort/LoadBalancer service types (range 30000-32767).",
+                    "type": [
+                        "string",
+                        "integer"
+                    ]
                 },
                 "port": {
                     "default": 7007,
@@ -1471,6 +1497,11 @@
                     "default": false,
                     "title": "Create a ServiceAccount.",
                     "type": "boolean"
+                },
+                "labels": {
+                    "default": {},
+                    "title": "Additional labels for the ServiceAccount.",
+                    "type": "object"
                 },
                 "name": {
                     "default": "",

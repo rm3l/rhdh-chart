@@ -374,7 +374,7 @@ Return the computed EXTRA_CATALOG_INDEX_IMAGES env var value.
 {{- $imgs := list -}}
 {{- range (.Values.catalogIndex.extraImages | default list) -}}
   {{- $item := include "common.tplvalues.render" (dict "value" . "context" $root) | fromYaml -}}
-  {{- $ref := printf "%s/%s:%s" $item.registry $item.repository $item.tag -}}
+  {{- $ref := include "rhdh.image.render" (dict "image" $item "global" $root.Values.global) -}}
   {{- if $item.name -}}
     {{- if or (contains "," $item.name) (contains "=" $item.name) -}}
       {{- fail (printf "catalogIndex.extraImages[].name %q must not contain ',' or '='" $item.name) -}}

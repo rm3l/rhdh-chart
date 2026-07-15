@@ -161,7 +161,7 @@ spec:
             - name: MAX_ENTRY_SIZE
               value: "40000000"
             - name: CATALOG_INDEX_IMAGE
-              value: {{ printf "%s/%s:%s" .Values.catalogIndex.image.registry .Values.catalogIndex.image.repository .Values.catalogIndex.image.tag | quote }}
+              value: {{ include "rhdh.image.render" (dict "image" .Values.catalogIndex.image "global" .Values.global) | quote }}
             - name: CATALOG_ENTITIES_EXTRACT_DIR
               value: /extensions
             {{- if $extraCatalogImages }}

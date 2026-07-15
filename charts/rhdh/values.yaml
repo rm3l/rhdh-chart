@@ -546,17 +546,49 @@ orchestrator:
       limits:
         memory: "1Gi"
         cpu: "500m"
-    externalDBSecretRef: ""
-    externalDBName: ""
-    externalDBHost: ""
-    externalDBPort: ""
-    initContainerImage: "{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
-    createDBJobImage: "{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
-    dbCreationJobBackoffLimit: 2
-    dbCreationJobTTLSecondsAfterFinished:
-    dbCreationJobActiveDeadlineSeconds: 120
-    jobServiceImage: ""
-    dataIndexImage: ""
+    # -- External database connection. Used when postgresql.enabled is false.
+    externalDB:
+      # -- Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.
+      secretRef: ""
+      # -- Database name to connect to for the CREATE DATABASE command.
+      name: ""
+      # -- Database host (used in JDBC URLs).
+      host: ""
+      # -- Database port (used in JDBC URLs).
+      port: ""
+    # -- Database creation Job configuration.
+    dbCreationJob:
+      backoffLimit: 2
+      ttlSecondsAfterFinished:
+      activeDeadlineSeconds: 120
+      # -- Container image for the create-db Job.
+      image:
+        registry: "{{ .Values.postgresql.image.registry }}"
+        repository: "{{ .Values.postgresql.image.repository }}"
+        tag: "{{ .Values.postgresql.image.tag }}"
+        digest: "{{ .Values.postgresql.image.digest }}"
+      # -- Init container image for the wait-for-db step.
+      initImage:
+        registry: "{{ .Values.postgresql.image.registry }}"
+        repository: "{{ .Values.postgresql.image.repository }}"
+        tag: "{{ .Values.postgresql.image.tag }}"
+        digest: "{{ .Values.postgresql.image.digest }}"
+    # -- SonataFlow Data Index service configuration.
+    dataIndex:
+      # -- Override the Data Index container image. If empty, the operator default is used.
+      image:
+        registry: ""
+        repository: ""
+        tag: ""
+        digest: ""
+    # -- SonataFlow Job Service configuration.
+    jobService:
+      # -- Override the Job Service container image. If empty, the operator default is used.
+      image:
+        registry: ""
+        repository: ""
+        tag: ""
+        digest: ""
   plugins:
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ "{{inherit}}" }}'
       enabled: true
@@ -577,4 +609,8 @@ test:
     repository: "curl/curl"
     tag: "8.9.1"
     digest: ""
+  # -- Whether to inject a fake dynamic plugins npmrc secret.
+  # <br />See RHDHBUGS-1893 and RHDHBUGS-1464 for the motivation behind this.
+  # <br />This is only used for testing purposes and should not be used in production.
+  # <br />Only relevant when `test.enabled` field is set to `true`.
   injectTestNpmrcSecret: false

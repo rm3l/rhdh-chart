@@ -239,6 +239,28 @@ Return the computed EXTRA_CATALOG_INDEX_IMAGES env var value.
 {{- end -}}
 
 {{/*
+Return an orchestrator image, resolving tpl expressions in each field.
+Expects: dict "image" <image map> "context" $
+*/}}
+{{- define "rhdh.orchestrator.image" -}}
+{{- $resolved := dict
+  "registry" (tpl (default "" .image.registry) .context)
+  "repository" (tpl (default "" .image.repository) .context)
+  "tag" (tpl (default "" .image.tag) .context)
+  "digest" (tpl (default "" .image.digest) .context)
+-}}
+{{- include "rhdh.image.render" (dict "image" $resolved "global" .context.Values.global) -}}
+{{- end -}}
+
+{{/*
+Return true if any field in a structured image map is non-empty.
+Expects: an image map with registry/repository/tag/digest fields.
+*/}}
+{{- define "rhdh.image.hasOverride" -}}
+{{- if or .registry .repository .tag .digest -}}true{{- end -}}
+{{- end -}}
+
+{{/*
 Returns the orchestrator DB creation Job name, lowercased and truncated to 63 chars.
 The version suffix is preserved in full; only the prefix is truncated.
 */}}

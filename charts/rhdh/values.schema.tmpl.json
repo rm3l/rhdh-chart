@@ -1068,54 +1068,114 @@
                                 }
                             }
                         },
-                        "externalDBSecretRef": {
-                            "title": "Secret name for the user-created secret to connect an external DB.",
-                            "type": "string"
+                        "externalDB": {
+                            "title": "External database connection. Used when postgresql.enabled is false.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "secretRef": {
+                                    "title": "Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "name": {
+                                    "title": "Database name to connect to for the CREATE DATABASE command.",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "host": {
+                                    "title": "Database host (used in JDBC URLs).",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "port": {
+                                    "title": "Database port (used in JDBC URLs).",
+                                    "type": "string",
+                                    "default": ""
+                                }
+                            }
                         },
-                        "externalDBName": {
-                            "title": "Name for the user-configured external Database.",
-                            "type": "string"
+                        "dbCreationJob": {
+                            "title": "Database creation Job configuration.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "backoffLimit": {
+                                    "default": 2,
+                                    "minimum": 0,
+                                    "title": "Number of retries for the database creation job if it fails.",
+                                    "type": "integer"
+                                },
+                                "ttlSecondsAfterFinished": {
+                                    "minimum": 1,
+                                    "title": "Time in seconds after which the Job is automatically deleted. Leave empty to disable (recommended for GitOps/ArgoCD).",
+                                    "type": ["integer", "null"]
+                                },
+                                "activeDeadlineSeconds": {
+                                    "default": 120,
+                                    "minimum": 1,
+                                    "title": "Maximum time in seconds for the Job to complete before being terminated.",
+                                    "type": "integer"
+                                },
+                                "image": {
+                                    "title": "Container image for the create-db Job. Defaults to the postgresql subchart image if empty.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "registry": { "type": "string", "default": "" },
+                                        "repository": { "type": "string", "default": "" },
+                                        "tag": { "type": "string", "default": "" },
+                                        "digest": { "type": "string", "default": "" }
+                                    }
+                                },
+                                "initImage": {
+                                    "title": "Init container image for the wait-for-db step. Defaults to the postgresql subchart image if empty.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "registry": { "type": "string", "default": "" },
+                                        "repository": { "type": "string", "default": "" },
+                                        "tag": { "type": "string", "default": "" },
+                                        "digest": { "type": "string", "default": "" }
+                                    }
+                                }
+                            }
                         },
-                        "externalDBHost": {
-                            "title": "Host for the user-configured external Database.",
-                            "type": "string"
+                        "dataIndex": {
+                            "title": "SonataFlow Data Index service configuration.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "image": {
+                                    "title": "Override the Data Index container image. If empty, the operator default is used.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "registry": { "type": "string", "default": "" },
+                                        "repository": { "type": "string", "default": "" },
+                                        "tag": { "type": "string", "default": "" },
+                                        "digest": { "type": "string", "default": "" }
+                                    }
+                                }
+                            }
                         },
-                        "externalDBPort": {
-                            "title": "Port for the user-configured external Database.",
-                            "type": "string"
-                        },
-                        "initContainerImage": {
-                            "title": "Image for the init container used by the create-db job.",
-                            "type": "string"
-                        },
-                        "createDBJobImage": {
-                            "title": "Image for the container used by the create-db job.",
-                            "type": "string"
-                        },
-                        "dbCreationJobBackoffLimit": {
-                            "default": 2,
-                            "minimum": 0,
-                            "title": "Number of retries for the Sonataflow database creation job if it fails.",
-                            "type": "integer"
-                        },
-                        "dbCreationJobTTLSecondsAfterFinished": {
-                            "minimum": 1,
-                            "title": "Time in seconds after which the Sonataflow database creation Job is automatically deleted. Leave empty to disable (recommended for GitOps/ArgoCD).",
-                            "type": ["integer", "null"]
-                        },
-                        "dbCreationJobActiveDeadlineSeconds": {
-                            "default": 120,
-                            "minimum": 1,
-                            "title": "Maximum time in seconds for the Sonataflow database creation Job to complete before being terminated.",
-                            "type": "integer"
-                        },
-                        "jobServiceImage": {
-                            "title": "Image for the container used by the sonataflow jobs service.",
-                            "type": "string"
-                        },
-                        "dataIndexImage": {
-                            "title": "Image for the container used by the sonataflow data index.",
-                            "type": "string"
+                        "jobService": {
+                            "title": "SonataFlow Job Service configuration.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "image": {
+                                    "title": "Override the Job Service container image. If empty, the operator default is used.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "registry": { "type": "string", "default": "" },
+                                        "repository": { "type": "string", "default": "" },
+                                        "tag": { "type": "string", "default": "" },
+                                        "digest": { "type": "string", "default": "" }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

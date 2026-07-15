@@ -51,15 +51,15 @@ spec:
             databaseName: sonataflow
 {{- else }}
           secretRef:
-            name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+            name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
             userKey: POSTGRES_USER
             passwordKey: POSTGRES_PASSWORD
-          jdbcUrl: jdbc:postgresql://{{ .Values.orchestrator.sonataflowPlatform.externalDBHost }}:{{ .Values.orchestrator.sonataflowPlatform.externalDBPort }}/sonataflow?currentSchema=data-index-service
+          jdbcUrl: jdbc:postgresql://{{ .Values.orchestrator.sonataflowPlatform.externalDB.host }}:{{ .Values.orchestrator.sonataflowPlatform.externalDB.port }}/sonataflow?currentSchema=data-index-service
 {{- end }}
-{{- if .Values.orchestrator.sonataflowPlatform.dataIndexImage }}
+{{- if (include "rhdh.image.hasOverride" .Values.orchestrator.sonataflowPlatform.dataIndex.image) }}
       podTemplate:
         container:
-          image: {{ .Values.orchestrator.sonataflowPlatform.dataIndexImage }}
+          image: {{ include "rhdh.image.render" (dict "image" .Values.orchestrator.sonataflowPlatform.dataIndex.image "global" .Values.global) | quote }}
 {{- end }}
     jobService:
       enabled: true
@@ -76,15 +76,15 @@ spec:
             databaseName: sonataflow
 {{- else }}
           secretRef:
-            name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+            name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
             userKey: POSTGRES_USER
             passwordKey: POSTGRES_PASSWORD
-          jdbcUrl: jdbc:postgresql://{{ .Values.orchestrator.sonataflowPlatform.externalDBHost }}:{{ .Values.orchestrator.sonataflowPlatform.externalDBPort }}/sonataflow?currentSchema=jobs-service
+          jdbcUrl: jdbc:postgresql://{{ .Values.orchestrator.sonataflowPlatform.externalDB.host }}:{{ .Values.orchestrator.sonataflowPlatform.externalDB.port }}/sonataflow?currentSchema=jobs-service
 {{- end }}
-{{- if .Values.orchestrator.sonataflowPlatform.jobServiceImage }}
+{{- if (include "rhdh.image.hasOverride" .Values.orchestrator.sonataflowPlatform.jobService.image) }}
       podTemplate:
         container:
-          image: {{ .Values.orchestrator.sonataflowPlatform.jobServiceImage }}
+          image: {{ include "rhdh.image.render" (dict "image" .Values.orchestrator.sonataflowPlatform.jobService.image "global" .Values.global) | quote }}
 {{- end }}
 ---
 apiVersion: batch/v1
@@ -98,10 +98,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-{{- with .Values.orchestrator.sonataflowPlatform.dbCreationJobTTLSecondsAfterFinished }}
+{{- with .Values.orchestrator.sonataflowPlatform.dbCreationJob.ttlSecondsAfterFinished }}
   ttlSecondsAfterFinished: {{ . }}
 {{- end }}
-  activeDeadlineSeconds: {{ .Values.orchestrator.sonataflowPlatform.dbCreationJobActiveDeadlineSeconds }}
+  activeDeadlineSeconds: {{ .Values.orchestrator.sonataflowPlatform.dbCreationJob.activeDeadlineSeconds }}
   template:
     spec:
       initContainers:
@@ -113,7 +113,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          image: "{{- tpl .Values.orchestrator.sonataflowPlatform.initContainerImage . -}}"
+          image: {{ include "rhdh.orchestrator.image" (dict "image" .Values.orchestrator.sonataflowPlatform.dbCreationJob.initImage "context" .) | quote }}
           resources:
             limits:
               cpu: "100m"
@@ -142,17 +142,17 @@ spec:
             - name: POSTGRES_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                  name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                   key: POSTGRES_HOST
             - name: POSTGRES_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                  name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                   key: POSTGRES_PORT
 {{- end }}
       containers:
       - name: psql
-        image: "{{- tpl .Values.orchestrator.sonataflowPlatform.createDBJobImage . -}}"
+        image: {{ include "rhdh.orchestrator.image" (dict "image" .Values.orchestrator.sonataflowPlatform.dbCreationJob.image "context" .) | quote }}
         resources:
           limits:
             cpu: "100m"
@@ -178,22 +178,22 @@ spec:
           - name: POSTGRES_HOST
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                 key: POSTGRES_HOST
           - name: POSTGRES_USER
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                 key: POSTGRES_USER
           - name: POSTGRES_PORT
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                 key: POSTGRES_PORT
           - name: PGPASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.orchestrator.sonataflowPlatform.externalDBSecretRef }}
+                name: {{ .Values.orchestrator.sonataflowPlatform.externalDB.secretRef }}
                 key: POSTGRES_PASSWORD
 {{- end }}
         command: [ "sh", "-c" ]
@@ -211,8 +211,8 @@ spec:
 {{- else }}
         args:
           - |
-            psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d {{ .Values.orchestrator.sonataflowPlatform.externalDBName }} -c 'CREATE DATABASE sonataflow;' 2>&1 || {
-              if psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d {{ .Values.orchestrator.sonataflowPlatform.externalDBName }} -tc "SELECT 1 FROM pg_database WHERE datname='sonataflow'" | grep -q 1; then
+            psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d {{ .Values.orchestrator.sonataflowPlatform.externalDB.name }} -c 'CREATE DATABASE sonataflow;' 2>&1 || {
+              if psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d {{ .Values.orchestrator.sonataflowPlatform.externalDB.name }} -tc "SELECT 1 FROM pg_database WHERE datname='sonataflow'" | grep -q 1; then
                 echo "Database 'sonataflow' already exists, skipping creation."
               else
                 echo "ERROR: Failed to create database 'sonataflow'."
@@ -221,5 +221,5 @@ spec:
             }
 {{- end }}
       restartPolicy: Never
-  backoffLimit: {{ .Values.orchestrator.sonataflowPlatform.dbCreationJobBackoffLimit }}
+  backoffLimit: {{ .Values.orchestrator.sonataflowPlatform.dbCreationJob.backoffLimit }}
 {{- end }}

@@ -569,45 +569,79 @@
         "lightspeed": {
             "additionalProperties": true,
             "default": {
-                "configMaps": [
+                "config": {
+                    "profile": {
+                        "existingConfigMap": {
+                            "key": "",
+                            "name": ""
+                        }
+                    },
+                    "server": {
+                        "existingConfigMap": {
+                            "key": "",
+                            "name": ""
+                        }
+                    },
+                    "stack": {
+                        "existingConfigMap": {
+                            "key": "",
+                            "name": ""
+                        }
+                    }
+                },
+                "core": {
+                    "argsOverride": [],
+                    "commandOverride": [],
+                    "extraEnv": [],
+                    "extraVolumeMounts": [],
+                    "image": {
+                        "digest": "",
+                        "registry": "quay.io",
+                        "repository": "lightspeed-core/lightspeed-stack",
+                        "tag": "0.5.2"
+                    },
+                    "imagePullPolicy": "IfNotPresent",
+                    "resources": {
+                        "limits": {
+                            "cpu": "1000m",
+                            "memory": "2Gi"
+                        },
+                        "requests": {
+                            "cpu": "100m",
+                            "memory": "512Mi"
+                        }
+                    },
+                    "securityContext": {
+                        "allowPrivilegeEscalation": false,
+                        "capabilities": {
+                            "drop": [
+                                "ALL"
+                            ]
+                        },
+                        "readOnlyRootFilesystem": true,
+                        "runAsNonRoot": true,
+                        "seccompProfile": {
+                            "type": "RuntimeDefault"
+                        }
+                    }
+                },
+                "enabled": true,
+                "existingSecretRef": "",
+                "plugins": [
                     {
-                        "create": true,
-                        "mountPath": "/app-root/lightspeed-stack.yaml",
-                        "name": "stack",
-                        "nameOverride": "",
-                        "optional": false,
-                        "sourceFile": "lightspeed-stack.yaml",
-                        "subPath": "lightspeed-stack.yaml"
+                        "enabled": true,
+                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
                     },
                     {
-                        "create": true,
-                        "mountPath": "/app-root/config.yaml",
-                        "name": "config",
-                        "nameOverride": "",
-                        "optional": false,
-                        "sourceFile": "config.yaml",
-                        "subPath": "config.yaml"
-                    },
-                    {
-                        "create": true,
-                        "mountPath": "/app-root/rhdh-profile.py",
-                        "name": "rhdh-profile",
-                        "nameOverride": "",
-                        "optional": false,
-                        "sourceFile": "rhdh-profile.py",
-                        "subPath": "rhdh-profile.py"
+                        "enabled": true,
+                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
                     }
                 ],
-                "enabled": true,
-                "initContainer": {
-                    "args": [
-                        "mkdir -p /tmp/data && echo 'Copying Lightspeed RAG data...' && cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ && cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ && mkdir -p /rag-content/vector_db/notebooks && chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db && echo 'Copy complete.'"
-                    ],
-                    "command": [
-                        "sh",
-                        "-c"
-                    ],
-                    "env": [],
+                "ragInit": {
+                    "argsOverride": [],
+                    "commandOverride": [],
+                    "extraEnv": [],
+                    "extraVolumeMounts": [],
                     "image": {
                         "digest": "",
                         "registry": "quay.io",
@@ -615,7 +649,6 @@
                         "tag": "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
                     },
                     "imagePullPolicy": "IfNotPresent",
-                    "name": "lightspeed-rag-init",
                     "resources": {
                         "limits": {
                             "cpu": "100m",
@@ -640,72 +673,10 @@
                         }
                     }
                 },
-                "plugins": [
-                    {
-                        "enabled": true,
-                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
-                    },
-                    {
-                        "enabled": true,
-                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
-                    }
-                ],
-                "ragVolume": {
-                    "emptyDir": {},
-                    "initMountPath": "/rag-content",
-                    "mountPath": "/rag-content",
-                    "name": "lightspeed-rag"
-                },
                 "runtimeVolume": {
                     "emptyDir": {},
-                    "mountPath": "/tmp",
-                    "name": "lightspeed-data",
                     "persistentVolumeClaim": {},
                     "type": "emptyDir"
-                },
-                "secret": {
-                    "create": true,
-                    "name": "",
-                    "optional": false,
-                    "sourceFile": "secret.yaml"
-                },
-                "sidecar": {
-                    "args": [],
-                    "command": [],
-                    "containerPort": 8080,
-                    "env": [],
-                    "image": {
-                        "digest": "",
-                        "registry": "quay.io",
-                        "repository": "lightspeed-core/lightspeed-stack",
-                        "tag": "0.5.2"
-                    },
-                    "imagePullPolicy": "IfNotPresent",
-                    "name": "lightspeed-core",
-                    "portName": "http-lightspeed",
-                    "resources": {
-                        "limits": {
-                            "cpu": "1000m",
-                            "memory": "2Gi"
-                        },
-                        "requests": {
-                            "cpu": "100m",
-                            "memory": "512Mi"
-                        }
-                    },
-                    "securityContext": {
-                        "allowPrivilegeEscalation": false,
-                        "capabilities": {
-                            "drop": [
-                                "ALL"
-                            ]
-                        },
-                        "readOnlyRootFilesystem": true,
-                        "runAsNonRoot": true,
-                        "seccompProfile": {
-                            "type": "RuntimeDefault"
-                        }
-                    }
                 }
             },
             "properties": {
@@ -1247,6 +1218,11 @@
             },
             "title": "Built-in PostgreSQL database (bitnami subchart).",
             "type": "object"
+        },
+        "preInitContainers": {
+            "default": [],
+            "title": "Init containers to run BEFORE the system init containers (e.g. inject auth credentials before install-dynamic-plugins runs).",
+            "type": "array"
         },
         "readinessProbe": {
             "default": {

@@ -476,6 +476,11 @@
             "type": "array",
             "default": []
         },
+        "preInitContainers": {
+            "title": "Init containers to run BEFORE the system init containers (e.g. inject auth credentials before install-dynamic-plugins runs).",
+            "type": "array",
+            "default": []
+        },
         "extraInitContainers": {
             "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them.",
             "type": "array",

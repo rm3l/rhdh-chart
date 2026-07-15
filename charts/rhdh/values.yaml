@@ -243,6 +243,10 @@ extraVolumeMounts: []
 # (e.g. Lightspeed sidecar), never replacing them.
 extraContainers: []
 
+# -- Init containers to run BEFORE the system init containers
+# (e.g. inject auth credentials before install-dynamic-plugins runs).
+preInitContainers: []
+
 # -- Additional init containers. These are ADDED after system init containers
 # (install-dynamic-plugins, Lightspeed RAG init), never replacing them.
 extraInitContainers: []
@@ -406,70 +410,74 @@ metrics:
 # -- Built-in Lightspeed AI feature configuration.
 lightspeed:
   enabled: true
+  # -- Lightspeed dynamic plugin packages.
   plugins:
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ "{{inherit}}" }}'
       enabled: true
     - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ "{{inherit}}" }}'
       enabled: true
+  # -- Configuration files mounted into the sidecar.
+  # By default, the chart creates ConfigMaps from bundled source files.
+  # Set existingConfigMap to use a pre-existing ConfigMap instead.
+  config:
+    # -- Lightspeed Core service configuration (lightspeed-stack.yaml).
+    stack:
+      # -- Use an existing ConfigMap instead of the bundled default.
+      # @default -- Created from bundled lightspeed-stack.yaml
+      existingConfigMap:
+        # -- Name of the existing ConfigMap.
+        name: ""
+        # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (lightspeed-stack.yaml) if not set.
+        key: ""
+    # -- Llama Stack server configuration (config.yaml).
+    server:
+      # -- Use an existing ConfigMap instead of the bundled default.
+      # @default -- Created from bundled config.yaml
+      existingConfigMap:
+        # -- Name of the existing ConfigMap.
+        name: ""
+        # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (config.yaml) if not set.
+        key: ""
+    # -- Python profile with prompt templates (rhdh-profile.py).
+    profile:
+      # -- Use an existing ConfigMap instead of the bundled default.
+      # @default -- Created from bundled rhdh-profile.py
+      existingConfigMap:
+        # -- Name of the existing ConfigMap.
+        name: ""
+        # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (rhdh-profile.py) if not set.
+        key: ""
+  # -- Name of an existing Secret to inject via envFrom into the lightspeed-core container.
+  # If empty, no secret is mounted.
+  # Expected keys (all optional — only set the ones for the providers you use):
+  #   ENABLE_VLLM, VLLM_URL, VLLM_API_KEY, VLLM_MAX_TOKENS, VLLM_TLS_VERIFY,
+  #   ENABLE_OPENAI, OPENAI_API_KEY,
+  #   ENABLE_VERTEX_AI, VERTEX_AI_PROJECT, VERTEX_AI_LOCATION, GOOGLE_APPLICATION_CREDENTIALS,
+  #   ENABLE_OLLAMA, OLLAMA_URL,
+  #   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME,
+  #   LLAMA_STACK_LOGGING
+  # See files/lightspeed/secret.example.yaml for a reference template.
+  existingSecretRef: ""
+  # -- Writable scratch volume for the sidecar (/tmp).
   runtimeVolume:
-    name: "lightspeed-data"
-    mountPath: "/tmp"
+    # -- Volume type: "emptyDir" or "persistentVolumeClaim".
     type: "emptyDir"
     emptyDir: {}
     persistentVolumeClaim: {}
-  ragVolume:
-    name: "lightspeed-rag"
-    initMountPath: "/rag-content"
-    mountPath: "/rag-content"
-    emptyDir: {}
-  configMaps:
-    - name: "stack"
-      create: true
-      nameOverride: ""
-      mountPath: "/app-root/lightspeed-stack.yaml"
-      subPath: "lightspeed-stack.yaml"
-      sourceFile: "lightspeed-stack.yaml"
-      optional: false
-    - name: "config"
-      create: true
-      nameOverride: ""
-      mountPath: "/app-root/config.yaml"
-      subPath: "config.yaml"
-      sourceFile: "config.yaml"
-      optional: false
-    - name: "rhdh-profile"
-      create: true
-      nameOverride: ""
-      mountPath: "/app-root/rhdh-profile.py"
-      subPath: "rhdh-profile.py"
-      sourceFile: "rhdh-profile.py"
-      optional: false
-  secret:
-    create: true
-    name: ""
-    optional: false
-    sourceFile: "secret.yaml"
-  initContainer:
-    name: "lightspeed-rag-init"
+  # -- RAG data bootstrap init container.
+  ragInit:
     image:
       registry: "quay.io"
       repository: "redhat-ai-dev/rag-content"
       tag: "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
       digest: ""
     imagePullPolicy: "IfNotPresent"
-    command:
-      - "sh"
-      - "-c"
-    args:
-      - >-
-        mkdir -p /tmp/data &&
-        echo 'Copying Lightspeed RAG data...' &&
-        cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ &&
-        cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ &&
-        mkdir -p /rag-content/vector_db/notebooks &&
-        chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db &&
-        echo 'Copy complete.'
-    env: []
+    # -- Override the default command for the RAG init container.
+    commandOverride: []
+    # -- Override the default arguments for the RAG init container.
+    argsOverride: []
+    extraEnv: []
+    extraVolumeMounts: []
     resources:
       requests:
         cpu: 50m
@@ -486,19 +494,20 @@ lightspeed:
       runAsNonRoot: true
       seccompProfile:
         type: "RuntimeDefault"
-  sidecar:
-    name: "lightspeed-core"
+  # -- Lightspeed Core sidecar container.
+  core:
     image:
       registry: "quay.io"
       repository: "lightspeed-core/lightspeed-stack"
       tag: "0.5.2"
       digest: ""
     imagePullPolicy: "IfNotPresent"
-    portName: "http-lightspeed"
-    containerPort: 8080
-    command: []
-    args: []
-    env: []
+    # -- Override the container's default command. Leave empty to use the image entrypoint.
+    commandOverride: []
+    # -- Override the container's default args. Leave empty to use the image defaults.
+    argsOverride: []
+    extraEnv: []
+    extraVolumeMounts: []
     resources:
       requests:
         cpu: 100m

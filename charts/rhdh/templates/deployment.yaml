@@ -1,9 +1,5 @@
 {{- $installDir := "/opt/app-root/src" -}}
 {{- $lightspeed := include "rhdh.lightspeed" . | fromYaml -}}
-{{- $lightspeedRuntimeVolumeType := "" -}}
-{{- if $lightspeed.enabled -}}
-{{- $lightspeedRuntimeVolumeType = include "rhdh.lightspeed.runtimeVolumeType" (dict "volume" $lightspeed.runtimeVolume "path" "lightspeed.runtimeVolume") -}}
-{{- end -}}
 {{- $extraCatalogImages := include "rhdh.catalogIndex.extraImagesEnvValue" . | trim -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -43,8 +39,7 @@ spec:
         checksum/app-config: {{ include "common.tplvalues.render" (dict "value" .Values.appConfig "context" $) | sha256sum }}
         checksum/dynamic-plugins: {{ include "common.tplvalues.render" (dict "value" (dict "dynamicPlugins" .Values.dynamicPlugins "lightspeed" (dict "enabled" $lightspeed.enabled "plugins" $lightspeed.plugins)) "context" $) | sha256sum }}
         {{- if $lightspeed.enabled }}
-        checksum/lightspeed-configmaps: {{ include "rhdh.lightspeed.configMapsChecksum" (dict "context" $ "lightspeed" $lightspeed) | sha256sum }}
-        checksum/lightspeed-secret: {{ include "rhdh.lightspeed.secretChecksum" (dict "context" $ "lightspeed" $lightspeed) | sha256sum }}
+        checksum/lightspeed-config: {{ toJson $lightspeed.config | sha256sum }}
         {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -121,22 +116,25 @@ spec:
             name: {{ .configMapRef }}
         {{- end }}
         {{- if $lightspeed.enabled }}
-        - name: {{ $lightspeed.runtimeVolume.name }}
-          {{- if eq $lightspeedRuntimeVolumeType "persistentVolumeClaim" }}
+        - name: lightspeed-data
+          {{- if eq $lightspeed.runtimeVolume.type "persistentVolumeClaim" }}
           persistentVolumeClaim:
             {{- include "common.tplvalues.render" (dict "value" $lightspeed.runtimeVolume.persistentVolumeClaim "context" $) | nindent 12 }}
           {{- else }}
           emptyDir:
             {{- include "common.tplvalues.render" (dict "value" $lightspeed.runtimeVolume.emptyDir "context" $) | nindent 12 }}
           {{- end }}
-        - name: {{ $lightspeed.ragVolume.name }}
-          emptyDir:
-            {{- include "common.tplvalues.render" (dict "value" $lightspeed.ragVolume.emptyDir "context" $) | nindent 12 }}
-        {{- range $lightspeed.configMaps }}
-        - name: {{ include "rhdh.lightspeed.configMapVolumeName" . }}
+        - name: lightspeed-rag
+          emptyDir: {}
+        {{- range $key := list "stack" "server" "profile" }}
+        {{- $entry := index $lightspeed.config $key }}
+        {{- $cmKey := include "rhdh.lightspeed.configMapKey" (dict "key" $key "entry" $entry) }}
+        - name: {{ printf "lightspeed-config-%s" $key }}
           configMap:
-            name: {{ include "rhdh.lightspeed.configMapName" (dict "root" $ "configMap" .) }}
-            optional: {{ default false .optional }}
+            name: {{ include "rhdh.lightspeed.configMapName" (dict "root" $ "key" $key "entry" $entry) }}
+            items:
+              - key: {{ $cmKey | quote }}
+                path: {{ $cmKey | quote }}
         {{- end }}
         {{- end }}
         # --- User-additional volumes (appended) ---
@@ -144,6 +142,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       initContainers:
+        # --- User pre-init containers (run before system init containers) ---
+        {{- with .Values.preInitContainers }}
+        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+        {{- end }}
         # --- System init containers (hardcoded) ---
         - name: install-dynamic-plugins
           image: {{ include "rhdh.image" . }}
@@ -198,34 +200,49 @@ spec:
               mountPath: /tmp
           workingDir: /opt/app-root/src
         {{- if $lightspeed.enabled }}
-        - name: {{ $lightspeed.initContainer.name }}
-          image: {{ include "rhdh.image.render" (dict "image" $lightspeed.initContainer.image "global" .Values.global) | quote }}
-          imagePullPolicy: {{ $lightspeed.initContainer.imagePullPolicy | quote }}
-          {{- with $lightspeed.initContainer.securityContext }}
+        - name: lightspeed-rag-init
+          image: {{ include "rhdh.image.render" (dict "image" $lightspeed.ragInit.image "global" .Values.global) | quote }}
+          imagePullPolicy: {{ $lightspeed.ragInit.imagePullPolicy | quote }}
+          {{- with $lightspeed.ragInit.securityContext }}
           securityContext:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.initContainer.command }}
+          {{- if $lightspeed.ragInit.commandOverride }}
           command:
-            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" $lightspeed.ragInit.commandOverride "context" $) | nindent 12 }}
+          {{- else }}
+          command: ["sh", "-c"]
           {{- end }}
-          {{- with $lightspeed.initContainer.args }}
+          {{- if $lightspeed.ragInit.argsOverride }}
           args:
-            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" $lightspeed.ragInit.argsOverride "context" $) | nindent 12 }}
+          {{- else }}
+          args:
+            - >-
+              mkdir -p /tmp/data &&
+              echo 'Copying Lightspeed RAG data...' &&
+              cp -r --no-preserve=mode,ownership /rag/vector_db /rag-content/ &&
+              cp -r --no-preserve=mode,ownership /rag/embeddings_model /rag-content/ &&
+              mkdir -p /rag-content/vector_db/notebooks &&
+              chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db &&
+              echo 'Copy complete.'
           {{- end }}
-          {{- with $lightspeed.initContainer.env }}
+          {{- with $lightspeed.ragInit.extraEnv }}
           env:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.initContainer.resources }}
+          {{- with $lightspeed.ragInit.resources }}
           resources:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: {{ $lightspeed.runtimeVolume.name }}
-              mountPath: {{ $lightspeed.runtimeVolume.mountPath | quote }}
-            - name: {{ $lightspeed.ragVolume.name }}
-              mountPath: {{ $lightspeed.ragVolume.initMountPath | quote }}
+            - name: lightspeed-data
+              mountPath: "/tmp"
+            - name: lightspeed-rag
+              mountPath: "/rag-content"
+            {{- with $lightspeed.ragInit.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
         {{- end }}
         # --- User-additional init containers (appended) ---
         {{- with .Values.extraInitContainers }}
@@ -349,49 +366,54 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
         {{- if $lightspeed.enabled }}
-        - name: {{ $lightspeed.sidecar.name }}
-          image: {{ include "rhdh.image.render" (dict "image" $lightspeed.sidecar.image "global" .Values.global) | quote }}
-          imagePullPolicy: {{ $lightspeed.sidecar.imagePullPolicy | quote }}
-          {{- with $lightspeed.sidecar.securityContext }}
+        - name: lightspeed-core
+          image: {{ include "rhdh.image.render" (dict "image" $lightspeed.core.image "global" .Values.global) | quote }}
+          imagePullPolicy: {{ $lightspeed.core.imagePullPolicy | quote }}
+          {{- with $lightspeed.core.securityContext }}
           securityContext:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.sidecar.command }}
+          {{- with $lightspeed.core.commandOverride }}
           command:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.sidecar.args }}
+          {{- with $lightspeed.core.argsOverride }}
           args:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           ports:
-            - name: {{ $lightspeed.sidecar.portName }}
-              containerPort: {{ $lightspeed.sidecar.containerPort }}
+            - name: http-lightspeed
+              containerPort: 8080
               protocol: TCP
+          {{- if $lightspeed.existingSecretRef }}
           envFrom:
             - secretRef:
-                name: {{ include "rhdh.lightspeed.secretName" (dict "context" $ "lightspeed" $lightspeed) }}
-                optional: {{ default false $lightspeed.secret.optional }}
-          {{- with $lightspeed.sidecar.env }}
+                name: {{ $lightspeed.existingSecretRef }}
+          {{- end }}
+          {{- with $lightspeed.core.extraEnv }}
           env:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.sidecar.resources }}
+          {{- with $lightspeed.core.resources }}
           resources:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: {{ $lightspeed.runtimeVolume.name }}
-              mountPath: {{ $lightspeed.runtimeVolume.mountPath | quote }}
-            - name: {{ $lightspeed.ragVolume.name }}
-              mountPath: {{ $lightspeed.ragVolume.mountPath | quote }}
-            {{- range $lightspeed.configMaps }}
-            - name: {{ include "rhdh.lightspeed.configMapVolumeName" . }}
-              mountPath: {{ .mountPath | quote }}
-              {{- if .subPath }}
-              subPath: {{ .subPath | quote }}
-              {{- end }}
+            - name: lightspeed-data
+              mountPath: "/tmp"
+            - name: lightspeed-rag
+              mountPath: "/rag-content"
+            {{- range $key := list "stack" "server" "profile" }}
+            {{- $entry := index $lightspeed.config $key }}
+            {{- $file := include "rhdh.lightspeed.configFile" $key }}
+            {{- $cmKey := include "rhdh.lightspeed.configMapKey" (dict "key" $key "entry" $entry) }}
+            - name: {{ printf "lightspeed-config-%s" $key }}
+              mountPath: {{ printf "/app-root/%s" $file | quote }}
+              subPath: {{ $cmKey | quote }}
               readOnly: true
+            {{- end }}
+            {{- with $lightspeed.core.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
         {{- end }}
         # --- User-additional sidecar containers (appended) ---

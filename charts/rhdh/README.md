@@ -280,7 +280,8 @@ Kubernetes: `>= 1.31.0-0`
 | serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |
-| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestNpmrcSecret":false}` |
+| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"injectTestLightspeedResources":false,"injectTestNpmrcSecret":false}` |
+| test.injectTestLightspeedResources | Whether to inject test ConfigMaps and Secret for Lightspeed existing-resource references. <br />This is only used for testing purposes and should not be used in production. <br />Only relevant when `test.enabled` field is set to `true`. | bool | `false` |
 | test.injectTestNpmrcSecret | Whether to inject a fake dynamic plugins npmrc secret. <br />See RHDHBUGS-1893 and RHDHBUGS-1464 for the motivation behind this. <br />This is only used for testing purposes and should not be used in production. <br />Only relevant when `test.enabled` field is set to `true`. | bool | `false` |
 | tolerations | Tolerations for pod assignment. | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |

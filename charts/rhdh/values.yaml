@@ -614,3 +614,7 @@ test:
   # <br />This is only used for testing purposes and should not be used in production.
   # <br />Only relevant when `test.enabled` field is set to `true`.
   injectTestNpmrcSecret: false
+  # -- Whether to inject test ConfigMaps and Secret for Lightspeed existing-resource references.
+  # <br />This is only used for testing purposes and should not be used in production.
+  # <br />Only relevant when `test.enabled` field is set to `true`.
+  injectTestLightspeedResources: false

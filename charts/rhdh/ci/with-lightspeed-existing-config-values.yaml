@@ -1,0 +1,16 @@
+lightspeed:
+  enabled: true
+  existingSecretRef: "test-lightspeed-secret"
+  config:
+    stack:
+      existingConfigMap:
+        name: "test-lightspeed-stack"
+    server:
+      existingConfigMap:
+        name: "test-lightspeed-server"
+    profile:
+      existingConfigMap:
+        name: "test-lightspeed-profile"
+
+test:
+  injectTestLightspeedResources: true

@@ -632,7 +632,7 @@
                         "tag": {
                             "title": "Catalog index image tag.",
                             "type": "string",
-                            "default": "1.10"
+                            "default": "1.10.1"
                         },
                         "digest": {
                             "title": "Overrides the catalog index image tag with an image digest.",
@@ -680,7 +680,7 @@
                                 "name": "community",
                                 "registry": "ghcr.io",
                                 "repository": "redhat-developer/rhdh-plugin-community-index",
-                                "tag": "1.10",
+                                "tag": "1.10.1",
                                 "digest": ""
                             },
                             {

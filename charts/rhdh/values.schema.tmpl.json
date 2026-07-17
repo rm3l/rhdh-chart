@@ -758,9 +758,9 @@
         },
         "lightspeed": {
             "title": "Built-in Lightspeed AI feature configuration.",
-            "type": ["boolean", "object"],
+            "type": "object",
             "default": {},
-            "additionalProperties": true,
+            "additionalProperties": false,
             "properties": {
                 "enabled": {
                     "title": "Enable or disable the built-in Lightspeed feature.",
@@ -794,6 +794,90 @@
                         },
                         "required": ["package"]
                     }
+                },
+                "config": {
+                    "title": "Configuration files mounted into the sidecar. By default, the chart creates ConfigMaps from bundled source files.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "stack": {
+                            "title": "Lightspeed Core service configuration (lightspeed-stack.yaml).",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "existingConfigMap": {
+                                    "title": "Use an existing ConfigMap instead of the bundled default.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "name": {
+                                            "title": "Name of the existing ConfigMap.",
+                                            "type": "string",
+                                            "default": ""
+                                        },
+                                        "key": {
+                                            "title": "Key within the ConfigMap. Defaults to the bundled filename if not set.",
+                                            "type": "string",
+                                            "default": ""
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "server": {
+                            "title": "Llama Stack server configuration (config.yaml).",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "existingConfigMap": {
+                                    "title": "Use an existing ConfigMap instead of the bundled default.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "name": {
+                                            "title": "Name of the existing ConfigMap.",
+                                            "type": "string",
+                                            "default": ""
+                                        },
+                                        "key": {
+                                            "title": "Key within the ConfigMap. Defaults to the bundled filename if not set.",
+                                            "type": "string",
+                                            "default": ""
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "profile": {
+                            "title": "Python profile with prompt templates (rhdh-profile.py).",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "existingConfigMap": {
+                                    "title": "Use an existing ConfigMap instead of the bundled default.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "name": {
+                                            "title": "Name of the existing ConfigMap.",
+                                            "type": "string",
+                                            "default": ""
+                                        },
+                                        "key": {
+                                            "title": "Key within the ConfigMap. Defaults to the bundled filename if not set.",
+                                            "type": "string",
+                                            "default": ""
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "existingSecretRef": {
+                    "title": "Name of an existing Secret to inject via envFrom into the lightspeed-core container.",
+                    "type": "string",
+                    "default": ""
                 },
                 "runtimeVolume": {
                     "title": "Runtime data volume configuration for the Lightspeed Core sidecar.",
@@ -837,6 +921,72 @@
                                     "default": false
                                 }
                             },
+                            "default": {}
+                        }
+                    }
+                },
+                "ragInit": {
+                    "title": "RAG data bootstrap init container.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "image": {
+                            "title": "Container image for the RAG init container.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "registry": { "type": "string", "default": "quay.io" },
+                                "repository": { "type": "string", "default": "redhat-ai-dev/rag-content" },
+                                "tag": { "type": "string" },
+                                "digest": { "type": "string", "default": "" }
+                            }
+                        },
+                        "imagePullPolicy": { "type": "string", "default": "IfNotPresent", "enum": ["Always", "IfNotPresent", "Never"] },
+                        "commandOverride": { "title": "Override the default command.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "argsOverride": { "title": "Override the default arguments.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "extraEnv": { "title": "Additional environment variables.", "type": "array", "items": { "type": "object" }, "default": [] },
+                        "extraVolumeMounts": { "title": "Additional volume mounts.", "type": "array", "items": { "type": "object" }, "default": [] },
+                        "resources": {
+                            "title": "Resource requests and limits.",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.4/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
+                            "default": {}
+                        },
+                        "securityContext": {
+                            "title": "Security context for the init container.",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.4/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
+                            "default": {}
+                        }
+                    }
+                },
+                "core": {
+                    "title": "Lightspeed Core sidecar container.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "image": {
+                            "title": "Container image for the Lightspeed Core sidecar.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "registry": { "type": "string", "default": "quay.io" },
+                                "repository": { "type": "string", "default": "lightspeed-core/lightspeed-stack" },
+                                "tag": { "type": "string" },
+                                "digest": { "type": "string", "default": "" }
+                            }
+                        },
+                        "imagePullPolicy": { "type": "string", "default": "IfNotPresent", "enum": ["Always", "IfNotPresent", "Never"] },
+                        "commandOverride": { "title": "Override the container's default command.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "argsOverride": { "title": "Override the container's default args.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "extraEnv": { "title": "Additional environment variables.", "type": "array", "items": { "type": "object" }, "default": [] },
+                        "extraVolumeMounts": { "title": "Additional volume mounts.", "type": "array", "items": { "type": "object" }, "default": [] },
+                        "resources": {
+                            "title": "Resource requests and limits.",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.4/_definitions.json#/definitions/io.k8s.api.core.v1.ResourceRequirements",
+                            "default": {}
+                        },
+                        "securityContext": {
+                            "title": "Security context for the sidecar container.",
+                            "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.4/_definitions.json#/definitions/io.k8s.api.core.v1.SecurityContext",
                             "default": {}
                         }
                     }

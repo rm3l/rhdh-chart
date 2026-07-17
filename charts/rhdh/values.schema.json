@@ -212,7 +212,7 @@
             "title": "Catalog index configuration for automatic plugin discovery.",
             "type": "object"
         },
-        "command": {
+        "commandOverride": {
             "default": [],
             "items": {
                 "type": "string"

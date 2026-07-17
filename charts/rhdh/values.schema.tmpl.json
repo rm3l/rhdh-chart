@@ -408,7 +408,7 @@
             "type": "object",
             "default": {}
         },
-        "command": {
+        "commandOverride": {
             "title": "Override the container command.",
             "type": "array",
             "default": [],

@@ -267,9 +267,9 @@ spec:
           securityContext:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- if .Values.command }}
+          {{- if .Values.commandOverride }}
           command:
-            {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.commandOverride "context" $) | nindent 12 }}
           {{- end }}
           args:
             {{- if .Values.argsOverride }}

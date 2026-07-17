@@ -83,7 +83,7 @@ auth:
     value: ""
 
 # -- Override the container command.
-command: []
+commandOverride: []
 
 # -- Override the container arguments entirely. When set, system --config arguments
 # are NOT added automatically — you must include them yourself.

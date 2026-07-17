@@ -1495,16 +1495,6 @@
                             "default": ""
                         }
                     }
-                },
-                "injectTestNpmrcSecret": {
-                    "title": "Whether to inject a fake dynamic plugins npmrc secret. This is only used for testing purposes and should not be used in production.",
-                    "type": "boolean",
-                    "default": false
-                },
-                "injectTestLightspeedResources": {
-                    "title": "Whether to inject test ConfigMaps and Secret for Lightspeed existing-resource references. This is only used for testing purposes and should not be used in production.",
-                    "type": "boolean",
-                    "default": false
                 }
             }
         }

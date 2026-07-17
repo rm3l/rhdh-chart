@@ -682,12 +682,3 @@ test:
     repository: "curl/curl"
     tag: "8.9.1"
     digest: ""
-  # -- Whether to inject a fake dynamic plugins npmrc secret.
-  # <br />See RHDHBUGS-1893 and RHDHBUGS-1464 for the motivation behind this.
-  # <br />This is only used for testing purposes and should not be used in production.
-  # <br />Only relevant when `test.enabled` field is set to `true`.
-  injectTestNpmrcSecret: false
-  # -- Whether to inject test ConfigMaps and Secret for Lightspeed existing-resource references.
-  # <br />This is only used for testing purposes and should not be used in production.
-  # <br />Only relevant when `test.enabled` field is set to `true`.
-  injectTestLightspeedResources: false

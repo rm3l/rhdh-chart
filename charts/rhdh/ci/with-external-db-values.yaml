@@ -1,12 +1,12 @@
 postgresql:
   enabled: false
 externalDatabase:
-  host: "db.example.com"
+  host: "ext-db-postgresql.ext-services.svc.cluster.local"
   port: 5432
-  user: "rhdh"
+  user: "postgres"
   existingSecretRef:
-    name: "my-db-secret"
-    key: "db-password"
+    name: "ext-db-password"
+    key: "password"
 test:
   enabled: false
 openshift:

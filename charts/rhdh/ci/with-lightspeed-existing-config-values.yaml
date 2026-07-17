@@ -11,6 +11,3 @@ lightspeed:
     profile:
       existingConfigMap:
         name: "test-lightspeed-profile"
-
-test:
-  injectTestLightspeedResources: true

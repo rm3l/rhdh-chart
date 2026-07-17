@@ -8,6 +8,3 @@ dynamicPlugins:
 
 orchestrator:
   enabled: true
-
-test:
-  injectTestNpmrcSecret: true

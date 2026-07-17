@@ -2360,16 +2360,6 @@
                     },
                     "title": "Image to use for the test pod. Note that the image needs to have both the `sh` and `curl` binaries in it.",
                     "type": "object"
-                },
-                "injectTestLightspeedResources": {
-                    "default": false,
-                    "title": "Whether to inject test ConfigMaps and Secret for Lightspeed existing-resource references. This is only used for testing purposes and should not be used in production.",
-                    "type": "boolean"
-                },
-                "injectTestNpmrcSecret": {
-                    "default": false,
-                    "title": "Whether to inject a fake dynamic plugins npmrc secret. This is only used for testing purposes and should not be used in production.",
-                    "type": "boolean"
                 }
             },
             "title": "Test pod configuration for `helm test`.",

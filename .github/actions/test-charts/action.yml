@@ -55,15 +55,22 @@ runs:
           if [[ "$INPUT_CHART" == "charts/backstage" || "$INPUT_CHART" == "charts/rhdh" ]]; then
             echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
           fi
+          if [[ "$INPUT_CHART" == "charts/rhdh" ]]; then
+            echo "externalDbNeeded=true" >> "$GITHUB_OUTPUT"
+          fi
         elif [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
+          echo "externalDbNeeded=true" >> "$GITHUB_OUTPUT"
         else
           listChanged=$(ct list-changed --target-branch "$INPUT_TARGET_BRANCH")
           if [[ -n "$listChanged" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             if grep -E 'charts/backstage|charts/rhdh' <<< "$listChanged"; then
               echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
+            fi
+            if grep -q 'charts/rhdh' <<< "$listChanged"; then
+              echo "externalDbNeeded=true" >> "$GITHUB_OUTPUT"
             fi
           fi
         fi
@@ -168,6 +175,71 @@ runs:
         done
         kubectl create -f "https://github.com/apache/incubator-kie-tools/releases/download/${SONATAFLOW_OPERATOR_VERSION}/apache-kie-${SONATAFLOW_OPERATOR_VERSION}-incubating-sonataflow-operator.yaml"
 
+    - name: Set up external services and test resources for rhdh
+      if: steps.list-changed.outputs.externalDbNeeded == 'true'
+      shell: bash
+      run: |
+        RHDH_VALUES="charts/rhdh/values.yaml"
+
+        # ── External PostgreSQL (ext-services namespace) ──
+        # Extract the image from the rhdh chart values to stay in sync
+        PG_REGISTRY=$(yq '.postgresql.image.registry' "$RHDH_VALUES")
+        PG_REPOSITORY=$(yq '.postgresql.image.repository' "$RHDH_VALUES")
+        PG_TAG=$(yq '.postgresql.image.tag' "$RHDH_VALUES")
+        # Pin the chart version to match the rhdh chart dependency
+        PG_CHART_VERSION=$(yq '.dependencies[] | select(.name == "postgresql") | .version' charts/rhdh/Chart.yaml)
+        echo "[INFO] Using PostgreSQL chart version: ${PG_CHART_VERSION}"
+        echo "[INFO] Using PostgreSQL image: ${PG_REGISTRY}/${PG_REPOSITORY}:${PG_TAG}"
+
+        kubectl create namespace ext-services
+        helm install ext-db bitnami/postgresql \
+          --namespace ext-services \
+          --version "$PG_CHART_VERSION" \
+          --set image.registry="$PG_REGISTRY" \
+          --set image.repository="$PG_REPOSITORY" \
+          --set image.tag="$PG_TAG" \
+          --set auth.postgresPassword=testpassword \
+          --set primary.persistence.enabled=false \
+          --set primary.podSecurityContext.enabled=false \
+          --set primary.containerSecurityContext.enabled=false \
+          --wait --timeout 300s
+
+        # ── Fixed test namespace (ct-charts) ──
+        # Using --namespace with ct install keeps this namespace alive across all
+        # ci/ values file tests, so pre-created resources persist.
+        kubectl create namespace ct-charts
+
+        # Secret for external-db test (with-external-db-values.yaml)
+        kubectl create secret generic ext-db-password \
+          --namespace ct-charts \
+          --from-literal=password=testpassword
+
+        # Fake .npmrc secret for dynamic-plugins init container test
+        # (with-orchestrator-and-dynamic-plugins-npmrc-values.yaml).
+        # ct uses the Chart.yaml name as the Helm release name, so fullname = redhat-developer-hub.
+        kubectl create secret generic redhat-developer-hub-dynamic-plugins-npmrc \
+          --namespace ct-charts \
+          --from-literal=.npmrc=$'@myscope:registry=https://my-registry.example.com\n//my-registry.example.com:_authToken=foo'
+
+        # Lightspeed existing-resource test (with-lightspeed-existing-config-values.yaml)
+        kubectl create configmap test-lightspeed-stack \
+          --namespace ct-charts \
+          --from-file=lightspeed-stack.yaml=charts/rhdh/files/lightspeed/lightspeed-stack.yaml
+        kubectl create configmap test-lightspeed-server \
+          --namespace ct-charts \
+          --from-file=config.yaml=charts/rhdh/files/lightspeed/config.yaml
+        kubectl create configmap test-lightspeed-profile \
+          --namespace ct-charts \
+          --from-file=rhdh-profile.py=charts/rhdh/files/lightspeed/rhdh-profile.py
+        kubectl create secret generic test-lightspeed-secret \
+          --namespace ct-charts \
+          --from-literal=LLAMA_STACK_LOGGING=info
+
+        # Minimal app-config for extraAppConfig test (with-extra-app-config-values.yaml)
+        kubectl create configmap my-app-config \
+          --namespace ct-charts \
+          --from-literal=app-config-custom.yaml='{}'
+
     - name: Run chart-testing (install)
       if: steps.list-changed.outputs.changed == 'true'
       shell: bash
@@ -221,6 +293,10 @@ runs:
           --target-branch "$INPUT_TARGET_BRANCH"
           --helm-extra-set-args="${EXTRA_ARGS[*]}"
         )
+        # Use a fixed namespace so that pre-created test resources
+        # (Secrets, ConfigMaps) persist across all ci/ values file tests.
+        kubectl create namespace ct-charts 2>/dev/null || true
+        CT_ARGS+=(--namespace ct-charts)
         # Only test upgrades from the previous revision if the chart exists on the target branch.
         # New charts (not yet on the target branch) would fail dependency build on the previous revision.
         if [[ -n "$INPUT_CHART" ]]; then

@@ -292,6 +292,7 @@ runs:
           EXTRA_ARGS+=(
             "--set openshift.route.enabled=false"
             "--set postgresql.primary.persistence.enabled=false"
+            "--set postgresql.primary.resources.limits.ephemeral-storage=200Mi"
             "--set podSecurityContext.fsGroup=1001"
           )
         fi

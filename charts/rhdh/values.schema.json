@@ -603,7 +603,7 @@
                         "digest": "",
                         "registry": "quay.io",
                         "repository": "lightspeed-core/lightspeed-stack",
-                        "tag": "0.5.2"
+                        "tag": "0.5.3"
                     },
                     "imagePullPolicy": "IfNotPresent",
                     "resources": {

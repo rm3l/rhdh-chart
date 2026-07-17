@@ -280,6 +280,8 @@ runs:
           # across init containers and sidecars that may run as different UIDs.
           EXTRA_ARGS+=(
             "--set openshift.route.enabled=false"
+            "--set ingress.enabled=true"
+            "--set host=rhdh.127.0.0.1.sslip.io"
             "--set postgresql.primary.persistence.enabled=false"
             "--set postgresql.primary.resources.limits.ephemeral-storage=200Mi"
             "--set podSecurityContext.fsGroup=1001"

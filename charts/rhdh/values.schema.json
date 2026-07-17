@@ -691,7 +691,7 @@
                 "hosts": {
                     "default": [
                         {
-                            "host": "chart-example.local",
+                            "host": "{{ .Values.host }}",
                             "paths": [
                                 {
                                     "path": "/",

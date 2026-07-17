@@ -30,7 +30,7 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
+    - host: {{ include "common.tplvalues.render" (dict "value" .host "context" $) | quote }}
       http:
         paths:
           {{- range .paths }}

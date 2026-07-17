@@ -345,17 +345,64 @@
                             "type": "object"
                         },
                         "ephemeral": {
-                            "title": "Raw Kubernetes ephemeral volume spec. Used when type is ephemeral.",
+                            "additionalProperties": false,
+                            "properties": {
+                                "accessModes": {
+                                    "default": [
+                                        "ReadWriteOnce"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "title": "Access modes for the ephemeral PVC.",
+                                    "type": "array"
+                                },
+                                "resources": {
+                                    "description": "VolumeResourceRequirements describes the storage resource requirements for a volume.",
+                                    "properties": {
+                                        "limits": {
+                                            "additionalProperties": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "number"
+                                                    }
+                                                ]
+                                            },
+                                            "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                                            "type": "object"
+                                        },
+                                        "requests": {
+                                            "additionalProperties": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "number"
+                                                    }
+                                                ]
+                                            },
+                                            "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "storageClassName": {
+                                    "default": "",
+                                    "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
+                                    "type": "string"
+                                }
+                            },
+                            "title": "Ephemeral volume configuration. The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields.",
                             "type": "object"
                         },
                         "pvc": {
                             "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
                             "type": "object"
-                        },
-                        "storageClassName": {
-                            "default": "",
-                            "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
-                            "type": "string"
                         },
                         "type": {
                             "default": "ephemeral",

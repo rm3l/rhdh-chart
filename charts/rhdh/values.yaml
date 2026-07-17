@@ -123,19 +123,19 @@ dynamicPlugins:
     # -- Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart),
     # or "pvc" (pre-existing PersistentVolumeClaim).
     type: "ephemeral"
-    # -- StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass
-    # or the cluster default. Set to "-" to explicitly disable dynamic provisioning.
-    storageClassName: ""
-    # -- Raw Kubernetes ephemeral volume spec. Used when type is "ephemeral".
-    # @default -- 5Gi ephemeral PVC with ReadWriteOnce access
+    # -- Ephemeral volume configuration. Used when type is "ephemeral".
+    # The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields.
     ephemeral:
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - "ReadWriteOnce"
-          resources:
-            requests:
-              storage: "5Gi"
+      # -- StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass
+      # or the cluster default. Set to "-" to explicitly disable dynamic provisioning.
+      storageClassName: ""
+      # -- Access modes for the ephemeral PVC.
+      accessModes:
+        - "ReadWriteOnce"
+      # -- Resource requests for the ephemeral PVC.
+      resources:
+        requests:
+          storage: "5Gi"
     # -- Raw Kubernetes emptyDir volume spec. Used when type is "emptyDir".
     emptyDir: {}
     # -- Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc".

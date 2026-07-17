@@ -84,16 +84,16 @@ spec:
           ephemeral:
             volumeClaimTemplate:
               spec:
-                {{- $persistence := dict "storageClass" (.Values.dynamicPlugins.volume.storageClassName | default "") }}
+                {{- $persistence := dict "storageClass" (.Values.dynamicPlugins.volume.ephemeral.storageClassName | default "") }}
                 {{- $sc := include "common.storage.class" (dict "persistence" $persistence "global" .Values.global) }}
                 {{- if $sc }}
                 {{ $sc }}
                 {{- end }}
-                {{- with .Values.dynamicPlugins.volume.ephemeral.volumeClaimTemplate.spec.accessModes }}
+                {{- with .Values.dynamicPlugins.volume.ephemeral.accessModes }}
                 accessModes:
                   {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 18 }}
                 {{- end }}
-                {{- with .Values.dynamicPlugins.volume.ephemeral.volumeClaimTemplate.spec.resources }}
+                {{- with .Values.dynamicPlugins.volume.ephemeral.resources }}
                 resources:
                   {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 18 }}
                 {{- end }}

@@ -620,14 +620,28 @@
                             "enum": ["ephemeral", "emptyDir", "pvc"],
                             "default": "ephemeral"
                         },
-                        "storageClassName": {
-                            "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
-                            "type": "string",
-                            "default": ""
-                        },
                         "ephemeral": {
-                            "title": "Raw Kubernetes ephemeral volume spec. Used when type is ephemeral.",
-                            "type": "object"
+                            "title": "Ephemeral volume configuration. The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "storageClassName": {
+                                    "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "accessModes": {
+                                    "title": "Access modes for the ephemeral PVC.",
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "default": ["ReadWriteOnce"]
+                                },
+                                "resources": {
+                                    "title": "Resource requests for the ephemeral PVC.",
+                                    "$ref": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.4/_definitions.json#/definitions/io.k8s.api.core.v1.VolumeResourceRequirements",
+                                    "default": { "requests": { "storage": "5Gi" } }
+                                }
+                            }
                         },
                         "emptyDir": {
                             "title": "Raw Kubernetes emptyDir volume spec. Used when type is emptyDir.",

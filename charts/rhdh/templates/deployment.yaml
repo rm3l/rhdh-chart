@@ -82,7 +82,21 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.volume.pvc "context" $) | nindent 12 }}
           {{- else }}
           ephemeral:
-            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.volume.ephemeral "context" $) | nindent 12 }}
+            volumeClaimTemplate:
+              spec:
+                {{- $persistence := dict "storageClass" (.Values.dynamicPlugins.volume.storageClassName | default "") }}
+                {{- $sc := include "common.storage.class" (dict "persistence" $persistence "global" .Values.global) }}
+                {{- if $sc }}
+                {{ $sc }}
+                {{- end }}
+                {{- with .Values.dynamicPlugins.volume.ephemeral.volumeClaimTemplate.spec.accessModes }}
+                accessModes:
+                  {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 18 }}
+                {{- end }}
+                {{- with .Values.dynamicPlugins.volume.ephemeral.volumeClaimTemplate.spec.resources }}
+                resources:
+                  {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 18 }}
+                {{- end }}
           {{- end }}
         - name: dynamic-plugins
           configMap:

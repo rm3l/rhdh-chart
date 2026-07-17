@@ -620,6 +620,11 @@
                             "enum": ["ephemeral", "emptyDir", "pvc"],
                             "default": "ephemeral"
                         },
+                        "storageClassName": {
+                            "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
+                            "type": "string",
+                            "default": ""
+                        },
                         "ephemeral": {
                             "title": "Raw Kubernetes ephemeral volume spec. Used when type is ephemeral.",
                             "type": "object"

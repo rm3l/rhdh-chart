@@ -352,6 +352,11 @@
                             "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
                             "type": "object"
                         },
+                        "storageClassName": {
+                            "default": "",
+                            "title": "StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. Set to \"-\" to disable dynamic provisioning.",
+                            "type": "string"
+                        },
                         "type": {
                             "default": "ephemeral",
                             "enum": [

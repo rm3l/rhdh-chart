@@ -214,12 +214,13 @@ runs:
           --namespace ct-charts \
           --from-literal=password=testpassword
 
-        # Fake .npmrc secret for dynamic-plugins init container test
-        # (with-orchestrator-and-dynamic-plugins-npmrc-values.yaml).
+        # Fake .npmrc secret for dynamic-plugins init container test.
+        # The volume is optional: true in the deployment, so this is only needed
+        # if a ci/ values file actually exercises the npmrc path.
         # ct uses the Chart.yaml name as the Helm release name, so fullname = redhat-developer-hub.
-        kubectl create secret generic redhat-developer-hub-dynamic-plugins-npmrc \
-          --namespace ct-charts \
-          --from-literal=.npmrc=$'@myscope:registry=https://my-registry.example.com\n//my-registry.example.com:_authToken=foo'
+        # kubectl create secret generic redhat-developer-hub-dynamic-plugins-npmrc \
+        #   --namespace ct-charts \
+        #   --from-literal=.npmrc=$'@myscope:registry=https://my-registry.example.com\n//my-registry.example.com:_authToken=foo'
 
         # Lightspeed existing-resource test (with-lightspeed-existing-config-values.yaml)
         kubectl create configmap test-lightspeed-stack \

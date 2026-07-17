@@ -150,13 +150,22 @@ spec:
         - name: install-dynamic-plugins
           image: {{ include "rhdh.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          {{- with .Values.containerSecurityContext }}
+          {{- with (.Values.dynamicPlugins.initContainer.securityContext | default .Values.containerSecurityContext) }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.dynamicPlugins.initContainer.commandOverride }}
+          command:
+            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.initContainer.commandOverride "context" $) | nindent 12 }}
+          {{- else }}
           command:
             - ./install-dynamic-plugins.sh
             - /dynamic-plugins-root
+          {{- end }}
+          {{- with .Values.dynamicPlugins.initContainer.argsOverride }}
+          args:
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+          {{- end }}
           env:
             - name: NPM_CONFIG_USERCONFIG
               value: /opt/app-root/src/.npmrc.dynamic-plugins
@@ -170,14 +179,13 @@ spec:
             - name: EXTRA_CATALOG_INDEX_IMAGES
               value: {{ $extraCatalogImages | quote }}
             {{- end }}
+            {{- with .Values.dynamicPlugins.initContainer.extraEnv }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
+          {{- with .Values.dynamicPlugins.initContainer.resources }}
           resources:
-            requests:
-              cpu: 250m
-              memory: 256Mi
-            limits:
-              cpu: 1000m
-              memory: 2.5Gi
-              ephemeral-storage: 5Gi
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - mountPath: /dynamic-plugins-root
               name: dynamic-plugins-root
@@ -198,6 +206,9 @@ spec:
               mountPath: /extensions
             - name: temp
               mountPath: /tmp
+            {{- with .Values.dynamicPlugins.initContainer.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- end }}
           workingDir: /opt/app-root/src
         {{- if $lightspeed.enabled }}
         - name: lightspeed-rag-init
@@ -296,15 +307,12 @@ spec:
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.envFrom.configMaps .Values.envFrom.secrets }}
+          {{- if or .Values.envFromOverride .Values.extraEnvFrom }}
           envFrom:
-            {{- range .Values.envFrom.configMaps }}
-            - configMapRef:
-                name: {{ . }}
-            {{- end }}
-            {{- range .Values.envFrom.secrets }}
-            - secretRef:
-                name: {{ . }}
+            {{- if .Values.envFromOverride }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.envFromOverride "context" $) | nindent 12 }}
+            {{- else }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvFrom "context" $) | nindent 12 }}
             {{- end }}
           {{- end }}
           env:
@@ -319,7 +327,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "rhdh.backend-secret-name" . }}
-                  key: backend-secret
+                  key: {{ include "rhdh.backend-secret-key" . }}
             {{- end }}
             {{- if .Values.postgresql.enabled }}
             - name: POSTGRES_HOST

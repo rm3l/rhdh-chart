@@ -69,10 +69,16 @@ extraAppConfig: []
 auth:
   backend:
     # -- Enable backend service-to-service authentication.
-    # Generates a random secret unless existingSecret or value is set.
+    # Generates a random secret unless existingSecretRef is set or value is provided.
+    # Disable if you inject the secret via extraEnvFrom or extraEnv instead.
     enabled: true
-    # -- Use an existing secret instead of generating one.
-    existingSecret: ""
+    # -- Reference an existing Secret instead of generating one.
+    # When not set, the chart auto-generates a random token.
+    existingSecretRef:
+      # -- Name of the existing Secret. When empty, the chart generates one.
+      name: ""
+      # -- Key within the Secret that holds the backend auth token.
+      key: "backend-secret"
     # -- Use a specific value instead of generating one.
     value: ""
 
@@ -91,10 +97,16 @@ envOverride: []
 # -- Extra environment variables appended after the system env vars.
 extraEnv: []
 
-# -- ConfigMaps and Secrets to inject as environment variables via envFrom.
-envFrom:
-  configMaps: []
-  secrets: []
+# -- Override the container envFrom entirely. When set, extraEnvFrom is ignored.
+# Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix).
+envFromOverride: []
+# -- Extra envFrom entries appended to the container.
+# Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix).
+extraEnvFrom: []
+# - configMapRef:
+#     name: my-config
+# - secretRef:
+#     name: my-secret
 
 # ── Dynamic plugins ─────────────────────────────────────────
 
@@ -126,6 +138,30 @@ dynamicPlugins:
     # -- Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc".
     pvc:
       claimName: ""
+  # -- Configuration for the install-dynamic-plugins init container.
+  initContainer:
+    # -- Override the default command. Leave empty to use the default (./install-dynamic-plugins.sh /dynamic-plugins-root).
+    commandOverride: []
+    # -- Override the default arguments. Leave empty to use the defaults.
+    argsOverride: []
+    # -- Extra environment variables appended after the system env vars
+    # (NPM_CONFIG_USERCONFIG, MAX_ENTRY_SIZE, CATALOG_INDEX_IMAGE, etc.).
+    extraEnv: []
+    # -- Additional volume mounts appended after the system mounts
+    # (dynamic-plugins-root, npmrc, registry-auth, npmcacache, extensions-catalog, temp).
+    extraVolumeMounts: []
+    # -- Resource requests and limits.
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 2.5Gi
+        ephemeral-storage: 5Gi
+    # -- Security context for the init container.
+    # @default -- Same as containerSecurityContext
+    securityContext: {}
 
 # -- Catalog index configuration for automatic plugin discovery.
 catalogIndex:

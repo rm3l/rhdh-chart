@@ -476,28 +476,15 @@
             "type": "array",
             "default": []
         },
-        "envFrom": {
-            "title": "ConfigMaps and Secrets to inject as environment variables via envFrom.",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "configMaps": {
-                    "title": "ConfigMaps to inject as environment variables.",
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "secrets": {
-                    "title": "Secrets to inject as environment variables.",
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
+        "envFromOverride": {
+            "title": "Override the container envFrom entirely. When set, extraEnvFrom is ignored.",
+            "type": "array",
+            "default": []
+        },
+        "extraEnvFrom": {
+            "title": "Extra envFrom entries appended to the container.",
+            "type": "array",
+            "default": []
         },
         "extraContainers": {
             "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
@@ -552,14 +539,26 @@
                     "additionalProperties": false,
                     "properties": {
                         "enabled": {
-                            "title": "Enable backend service to service authentication. Generates a random secret unless existingSecret or value is set.",
+                            "title": "Enable backend service-to-service authentication. Disable if you inject the secret via extraEnvFrom or extraEnv instead.",
                             "type": "boolean",
                             "default": true
                         },
-                        "existingSecret": {
-                            "title": "Use an existing secret instead of generating one.",
-                            "type": "string",
-                            "default": ""
+                        "existingSecretRef": {
+                            "title": "Reference an existing Secret instead of generating one.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "name": {
+                                    "title": "Name of the existing Secret. When empty, the chart generates one.",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "key": {
+                                    "title": "Key within the Secret that holds the backend auth token.",
+                                    "type": "string",
+                                    "default": "backend-secret"
+                                }
+                            }
                         },
                         "value": {
                             "title": "Use a specific value instead of generating one.",
@@ -631,6 +630,41 @@
                         },
                         "pvc": {
                             "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
+                            "type": "object"
+                        }
+                    }
+                },
+                "initContainer": {
+                    "title": "Configuration for the install-dynamic-plugins init container.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "commandOverride": {
+                            "title": "Override the default command.",
+                            "type": "array",
+                            "default": []
+                        },
+                        "argsOverride": {
+                            "title": "Override the default arguments.",
+                            "type": "array",
+                            "default": []
+                        },
+                        "extraEnv": {
+                            "title": "Extra environment variables appended after the system env vars.",
+                            "type": "array",
+                            "default": []
+                        },
+                        "extraVolumeMounts": {
+                            "title": "Additional volume mounts appended after the system mounts.",
+                            "type": "array",
+                            "default": []
+                        },
+                        "resources": {
+                            "title": "Resource requests and limits.",
+                            "type": "object"
+                        },
+                        "securityContext": {
+                            "title": "Security context for the init container. Defaults to containerSecurityContext if empty.",
                             "type": "object"
                         }
                     }

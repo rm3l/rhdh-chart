@@ -179,9 +179,11 @@ Kubernetes: `>= 1.31.0-0`
 | affinity | Affinity rules for pod assignment. | object | `{}` |
 | appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | Default config with base URLs, CORS, database connection, and backend auth. |
 | argsOverride |  | list | `[]` |
-| auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecret":"","value":""}}` |
-| auth.backend.enabled | Enable backend service-to-service authentication. Generates a random secret unless existingSecret or value is set. | bool | `true` |
-| auth.backend.existingSecret | Use an existing secret instead of generating one. | string | `""` |
+| auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecretRef":{"key":"backend-secret","name":""},"value":""}}` |
+| auth.backend.enabled | Enable backend service-to-service authentication. Generates a random secret unless existingSecretRef is set or value is provided. Disable if you inject the secret via extraEnvFrom or extraEnv instead. | bool | `true` |
+| auth.backend.existingSecretRef | Reference an existing Secret instead of generating one. When not set, the chart auto-generates a random token. | object | `{"key":"backend-secret","name":""}` |
+| auth.backend.existingSecretRef.key | Key within the Secret that holds the backend auth token. | string | `"backend-secret"` |
+| auth.backend.existingSecretRef.name | Name of the existing Secret. When empty, the chart generates one. | string | `""` |
 | auth.backend.value | Use a specific value instead of generating one. | string | `""` |
 | autoscaling | Horizontal Pod Autoscaler configuration. | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` |
 | catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10.2"}}` |
@@ -191,20 +193,28 @@ Kubernetes: `>= 1.31.0-0`
 | commonLabels | Labels applied to ALL chart resources. | object | `{}` |
 | containerSecurityContext | Security context for the main RHDH container (not the Lightspeed sidecar or init containers). | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` |
 | deploymentAnnotations | Annotations for the Deployment resource (not the pod). | object | `{}` |
-| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}}` |
+| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"initContainer":{"argsOverride":[],"commandOverride":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}},"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}}` |
 | dynamicPlugins.includes | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). | list | `["dynamic-plugins.default.yaml"]` |
+| dynamicPlugins.initContainer | Configuration for the install-dynamic-plugins init container. | object | `{"argsOverride":[],"commandOverride":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}}` |
+| dynamicPlugins.initContainer.argsOverride | Override the default arguments. Leave empty to use the defaults. | list | `[]` |
+| dynamicPlugins.initContainer.commandOverride | Override the default command. Leave empty to use the default (./install-dynamic-plugins.sh /dynamic-plugins-root). | list | `[]` |
+| dynamicPlugins.initContainer.extraEnv | Extra environment variables appended after the system env vars (NPM_CONFIG_USERCONFIG, MAX_ENTRY_SIZE, CATALOG_INDEX_IMAGE, etc.). | list | `[]` |
+| dynamicPlugins.initContainer.extraVolumeMounts | Additional volume mounts appended after the system mounts (dynamic-plugins-root, npmrc, registry-auth, npmcacache, extensions-catalog, temp). | list | `[]` |
+| dynamicPlugins.initContainer.resources | Resource requests and limits. | object | `{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}}` |
+| dynamicPlugins.initContainer.securityContext | Security context for the init container. | object | Same as containerSecurityContext |
 | dynamicPlugins.plugins | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. | list | `[]` |
 | dynamicPlugins.volume | Volume configuration for the dynamic plugins root directory. | object | `{"emptyDir":{},"ephemeral":{"volumeClaimTemplate":{"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}}}}},"pvc":{"claimName":""},"type":"ephemeral"}` |
 | dynamicPlugins.volume.emptyDir | Raw Kubernetes emptyDir volume spec. Used when type is "emptyDir". | object | `{}` |
 | dynamicPlugins.volume.ephemeral | Raw Kubernetes ephemeral volume spec. Used when type is "ephemeral". | object | 5Gi ephemeral PVC with ReadWriteOnce access |
 | dynamicPlugins.volume.pvc | Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc". | object | `{"claimName":""}` |
 | dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). | string | `"ephemeral"` |
-| envFrom | ConfigMaps and Secrets to inject as environment variables via envFrom. | object | `{"configMaps":[],"secrets":[]}` |
+| envFromOverride | Override the container envFrom entirely. When set, extraEnvFrom is ignored. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
 | envOverride | Override the container environment variables entirely. When set, system env vars (BACKEND_SECRET, DB credentials, etc.) are NOT added automatically. | list | `[]` |
 | extraAppConfig | Additional app-config files from existing ConfigMaps. | list | `[]` |
 | extraArgs |  | list | `[]` |
 | extraContainers | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. | list | `[]` |
 | extraEnv | Extra environment variables appended after the system env vars. | list | `[]` |
+| extraEnvFrom | Extra envFrom entries appended to the container. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
 | extraInitContainers | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them. | list | `[]` |
 | extraVolumeMounts | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. | list | `[]` |
 | extraVolumes | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. | list | `[]` |

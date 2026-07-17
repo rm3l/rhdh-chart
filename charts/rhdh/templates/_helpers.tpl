@@ -125,14 +125,21 @@ Returns custom hostname.
 {{- end -}}
 
 {{/*
-Returns a secret name for service to service auth.
+Returns the Secret name for service-to-service auth.
 */}}
 {{- define "rhdh.backend-secret-name" -}}
-    {{- if .Values.auth.backend.existingSecret -}}
-        {{- .Values.auth.backend.existingSecret -}}
+    {{- if .Values.auth.backend.existingSecretRef.name -}}
+        {{- .Values.auth.backend.existingSecretRef.name -}}
     {{- else -}}
         {{- printf "%s-auth" .Release.Name -}}
     {{- end -}}
+{{- end -}}
+
+{{/*
+Returns the Secret key for service-to-service auth.
+*/}}
+{{- define "rhdh.backend-secret-key" -}}
+    {{- .Values.auth.backend.existingSecretRef.key | default "backend-secret" -}}
 {{- end -}}
 
 {{/*

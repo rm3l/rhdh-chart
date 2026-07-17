@@ -57,13 +57,25 @@
                     "properties": {
                         "enabled": {
                             "default": true,
-                            "title": "Enable backend service to service authentication. Generates a random secret unless existingSecret or value is set.",
+                            "title": "Enable backend service-to-service authentication. Disable if you inject the secret via extraEnvFrom or extraEnv instead.",
                             "type": "boolean"
                         },
-                        "existingSecret": {
-                            "default": "",
-                            "title": "Use an existing secret instead of generating one.",
-                            "type": "string"
+                        "existingSecretRef": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "key": {
+                                    "default": "backend-secret",
+                                    "title": "Key within the Secret that holds the backend auth token.",
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "default": "",
+                                    "title": "Name of the existing Secret. When empty, the chart generates one.",
+                                    "type": "string"
+                                }
+                            },
+                            "title": "Reference an existing Secret instead of generating one.",
+                            "type": "object"
                         },
                         "value": {
                             "default": "",
@@ -253,6 +265,41 @@
                     "title": "List of YAML files to include, each of which should contain a `plugins` array.",
                     "type": "array"
                 },
+                "initContainer": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "argsOverride": {
+                            "default": [],
+                            "title": "Override the default arguments.",
+                            "type": "array"
+                        },
+                        "commandOverride": {
+                            "default": [],
+                            "title": "Override the default command.",
+                            "type": "array"
+                        },
+                        "extraEnv": {
+                            "default": [],
+                            "title": "Extra environment variables appended after the system env vars.",
+                            "type": "array"
+                        },
+                        "extraVolumeMounts": {
+                            "default": [],
+                            "title": "Additional volume mounts appended after the system mounts.",
+                            "type": "array"
+                        },
+                        "resources": {
+                            "title": "Resource requests and limits.",
+                            "type": "object"
+                        },
+                        "securityContext": {
+                            "title": "Security context for the init container. Defaults to containerSecurityContext if empty.",
+                            "type": "object"
+                        }
+                    },
+                    "title": "Configuration for the install-dynamic-plugins init container.",
+                    "type": "object"
+                },
                 "plugins": {
                     "items": {
                         "properties": {
@@ -315,28 +362,10 @@
             "title": "Dynamic plugin system configuration.",
             "type": "object"
         },
-        "envFrom": {
-            "additionalProperties": false,
-            "properties": {
-                "configMaps": {
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "title": "ConfigMaps to inject as environment variables.",
-                    "type": "array"
-                },
-                "secrets": {
-                    "default": [],
-                    "items": {
-                        "type": "string"
-                    },
-                    "title": "Secrets to inject as environment variables.",
-                    "type": "array"
-                }
-            },
-            "title": "ConfigMaps and Secrets to inject as environment variables via envFrom.",
-            "type": "object"
+        "envFromOverride": {
+            "default": [],
+            "title": "Override the container envFrom entirely. When set, extraEnvFrom is ignored.",
+            "type": "array"
         },
         "envOverride": {
             "default": [],
@@ -381,6 +410,11 @@
         "extraEnv": {
             "default": [],
             "title": "Extra environment variables appended after the system env vars.",
+            "type": "array"
+        },
+        "extraEnvFrom": {
+            "default": [],
+            "title": "Extra envFrom entries appended to the container.",
             "type": "array"
         },
         "extraInitContainers": {

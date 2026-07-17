@@ -1,0 +1,8 @@
+extraAppConfig:
+  - configMapRef: "my-app-config"
+    filename: "app-config-custom.yaml"
+test:
+  enabled: false
+openshift:
+  route:
+    enabled: false

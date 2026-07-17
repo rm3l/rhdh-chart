@@ -442,6 +442,23 @@ postgresql:
             key: '{{- include "rhdh.postgresql.adminPasswordKey" . }}'
             name: '{{- include "rhdh.postgresql.secretName" . }}'
 
+# -- External database connection. Used when postgresql.enabled is false.
+# When both postgresql.enabled and externalDatabase.host are false/empty,
+# the chart renders no database env vars (BYO configuration via extraEnv or appConfig).
+externalDatabase:
+  # -- External database hostname.
+  host: ""
+  # -- External database port.
+  port: 5432
+  # -- External database user.
+  user: "postgres"
+  # -- Reference to an existing Secret containing the database password.
+  existingSecretRef:
+    # -- Name of the existing Secret.
+    name: ""
+    # -- Key within the Secret that holds the password.
+    key: "password"
+
 # ── Observability ───────────────────────────────────────────
 
 # -- Prometheus metrics configuration.

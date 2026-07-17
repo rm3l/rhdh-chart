@@ -166,10 +166,13 @@ Returns the PostgreSQL admin password key.
 
 {{/*
 Returns the PostgreSQL hostname.
-Appends -primary when postgresql.architecture is "replication".
+When postgresql.enabled is false, returns externalDatabase.host.
+When enabled, appends -primary when postgresql.architecture is "replication".
 */}}
 {{- define "rhdh.postgresql.host" -}}
-{{- if eq (default "standalone" .Values.postgresql.architecture) "replication" -}}
+{{- if not .Values.postgresql.enabled -}}
+{{- .Values.externalDatabase.host -}}
+{{- else if eq (default "standalone" .Values.postgresql.architecture) "replication" -}}
 {{- printf "%s-postgresql-primary" .Release.Name -}}
 {{- else -}}
 {{- printf "%s-postgresql" .Release.Name -}}

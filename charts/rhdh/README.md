@@ -211,6 +211,13 @@ Kubernetes: `>= 1.31.0-0`
 | dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). | string | `"ephemeral"` |
 | envFromOverride | Override the container envFrom entirely. When set, extraEnvFrom is ignored. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
 | envOverride | Override the container environment variables entirely. When set, system env vars (BACKEND_SECRET, DB credentials, etc.) are NOT added automatically. | list | `[]` |
+| externalDatabase | External database connection. Used when postgresql.enabled is false. When both postgresql.enabled and externalDatabase.host are false/empty, the chart renders no database env vars (BYO configuration via extraEnv or appConfig). | object | `{"existingSecretRef":{"key":"password","name":""},"host":"","port":5432,"user":"postgres"}` |
+| externalDatabase.existingSecretRef | Reference to an existing Secret containing the database password. | object | `{"key":"password","name":""}` |
+| externalDatabase.existingSecretRef.key | Key within the Secret that holds the password. | string | `"password"` |
+| externalDatabase.existingSecretRef.name | Name of the existing Secret. | string | `""` |
+| externalDatabase.host | External database hostname. | string | `""` |
+| externalDatabase.port | External database port. | int | `5432` |
+| externalDatabase.user | External database user. | string | `"postgres"` |
 | extraAppConfig | Additional app-config files from existing ConfigMaps. | list | `[]` |
 | extraArgs |  | list | `[]` |
 | extraContainers | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. | list | `[]` |

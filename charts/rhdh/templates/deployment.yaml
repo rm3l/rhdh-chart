@@ -349,6 +349,18 @@ spec:
                 secretKeyRef:
                   name: {{ include "rhdh.postgresql.secretName" . }}
                   key: {{ include "rhdh.postgresql.adminPasswordKey" . }}
+            {{- else if .Values.externalDatabase.host }}
+            - name: POSTGRES_HOST
+              value: {{ .Values.externalDatabase.host | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.externalDatabase.port | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.externalDatabase.user | default "postgres" | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingSecretRef.name }}
+                  key: {{ .Values.externalDatabase.existingSecretRef.key | default "password" }}
             {{- end }}
             # --- User-additional env vars (appended) ---
             {{- with .Values.extraEnv }}

@@ -1101,6 +1101,45 @@
                 }
             }
         },
+        "externalDatabase": {
+            "title": "External database connection. Used when postgresql.enabled is false.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "host": {
+                    "title": "External database hostname.",
+                    "type": "string",
+                    "default": ""
+                },
+                "port": {
+                    "title": "External database port.",
+                    "type": ["integer", "string"],
+                    "default": 5432
+                },
+                "user": {
+                    "title": "External database user.",
+                    "type": "string",
+                    "default": "postgres"
+                },
+                "existingSecretRef": {
+                    "title": "Reference to an existing Secret containing the database password.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {
+                            "title": "Name of the existing Secret.",
+                            "type": "string",
+                            "default": ""
+                        },
+                        "key": {
+                            "title": "Key within the Secret that holds the password.",
+                            "type": "string",
+                            "default": "password"
+                        }
+                    }
+                }
+            }
+        },
         "metrics": {
             "title": "Prometheus metrics configuration.",
             "type": "object",

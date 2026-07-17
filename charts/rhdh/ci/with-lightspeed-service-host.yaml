@@ -1,5 +1,0 @@
-lightspeed:
-  core:
-    extraEnv:
-      - name: SERVICE_HOST
-        value: "0.0.0.0"

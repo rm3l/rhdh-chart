@@ -1,3 +1,0 @@
-extraAppConfig:
-  - configMapRef: "my-app-config"
-    filename: "app-config-custom.yaml"

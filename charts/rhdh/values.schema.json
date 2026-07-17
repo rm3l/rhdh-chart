@@ -1899,29 +1899,6 @@
                                     "title": "Container image for the create-db Job. Defaults to the postgresql subchart image if empty.",
                                     "type": "object"
                                 },
-                                "initImage": {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "digest": {
-                                            "default": "{{ .Values.postgresql.image.digest }}",
-                                            "type": "string"
-                                        },
-                                        "registry": {
-                                            "default": "{{ .Values.postgresql.image.registry }}",
-                                            "type": "string"
-                                        },
-                                        "repository": {
-                                            "default": "{{ .Values.postgresql.image.repository }}",
-                                            "type": "string"
-                                        },
-                                        "tag": {
-                                            "default": "{{ .Values.postgresql.image.tag }}",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "title": "Init container image for the wait-for-db step. Defaults to the postgresql subchart image if empty.",
-                                    "type": "object"
-                                },
                                 "ttlSecondsAfterFinished": {
                                     "minimum": 1,
                                     "title": "Time in seconds after which the Job is automatically deleted. Leave empty to disable (recommended for GitOps/ArgoCD).",

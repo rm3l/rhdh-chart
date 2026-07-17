@@ -1,5 +1,0 @@
-test:
-  image:
-    registry: quay.io
-    repository: curl/curl-base
-    tag: 8.11.1

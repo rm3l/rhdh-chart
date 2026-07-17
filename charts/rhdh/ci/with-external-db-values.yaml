@@ -7,3 +7,11 @@ externalDatabase:
   existingSecretRef:
     name: "ext-db-password"
     key: "password"
+orchestrator:
+  enabled: true
+  sonataflowPlatform:
+    externalDB:
+      existingSecret: "ext-db-orchestrator"
+      name: "postgres"
+      host: "ext-db-postgresql.ext-services.svc.cluster.local"
+      port: "5432"

@@ -642,12 +642,6 @@ orchestrator:
         repository: "{{ .Values.postgresql.image.repository }}"
         tag: "{{ .Values.postgresql.image.tag }}"
         digest: "{{ .Values.postgresql.image.digest }}"
-      # -- Init container image for the wait-for-db step.
-      initImage:
-        registry: "{{ .Values.postgresql.image.registry }}"
-        repository: "{{ .Values.postgresql.image.repository }}"
-        tag: "{{ .Values.postgresql.image.tag }}"
-        digest: "{{ .Values.postgresql.image.digest }}"
     # -- SonataFlow Data Index service configuration.
     dataIndex:
       # -- Override the Data Index container image. If empty, the operator default is used.

@@ -1410,17 +1410,6 @@
                                         "tag": { "type": "string", "default": "" },
                                         "digest": { "type": "string", "default": "" }
                                     }
-                                },
-                                "initImage": {
-                                    "title": "Init container image for the wait-for-db step. Defaults to the postgresql subchart image if empty.",
-                                    "type": "object",
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "registry": { "type": "string", "default": "" },
-                                        "repository": { "type": "string", "default": "" },
-                                        "tag": { "type": "string", "default": "" },
-                                        "digest": { "type": "string", "default": "" }
-                                    }
                                 }
                             }
                         },

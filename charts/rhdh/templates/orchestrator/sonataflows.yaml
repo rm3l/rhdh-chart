@@ -113,7 +113,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          image: {{ include "rhdh.orchestrator.image" (dict "image" .Values.orchestrator.sonataflowPlatform.dbCreationJob.initImage "context" .) | quote }}
+          image: {{ include "rhdh.orchestrator.image" (dict "image" .Values.orchestrator.sonataflowPlatform.dbCreationJob.image "context" .) | quote }}
           resources:
             limits:
               cpu: "100m"

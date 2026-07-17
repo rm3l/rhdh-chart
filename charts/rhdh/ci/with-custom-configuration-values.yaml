@@ -1,5 +1,7 @@
+extraAppConfig:
+  - configMapRef: "my-app-config"
+    filename: "app-config-custom.yaml"
 lightspeed:
-  enabled: true
   existingSecret: "test-lightspeed-secret"
   config:
     stack:
@@ -11,3 +13,9 @@ lightspeed:
     profile:
       existingConfigMap:
         name: "test-lightspeed-profile"
+  core:
+    extraEnv:
+      - name: SERVICE_HOST
+        value: "0.0.0.0"
+orchestrator:
+  enabled: true

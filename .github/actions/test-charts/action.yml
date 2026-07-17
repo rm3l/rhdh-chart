@@ -217,6 +217,14 @@ runs:
           --namespace ct-charts \
           --from-literal=password=testpassword
 
+        # Secret for orchestrator external-db (with-external-db-values.yaml)
+        kubectl create secret generic ext-db-orchestrator \
+          --namespace ct-charts \
+          --from-literal=POSTGRES_HOST=ext-db-postgresql.ext-services.svc.cluster.local \
+          --from-literal=POSTGRES_PORT=5432 \
+          --from-literal=POSTGRES_USER=postgres \
+          --from-literal=POSTGRES_PASSWORD=testpassword
+
         # Fake .npmrc secret for dynamic-plugins init container test.
         # The volume is optional: true in the deployment, so this is only needed
         # if a ci/ values file actually exercises the npmrc path.

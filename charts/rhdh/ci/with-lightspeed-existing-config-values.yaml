@@ -1,6 +1,6 @@
 lightspeed:
   enabled: true
-  existingSecretRef: "test-lightspeed-secret"
+  existingSecret: "test-lightspeed-secret"
   config:
     stack:
       existingConfigMap:

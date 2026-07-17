@@ -504,7 +504,7 @@ lightspeed:
   #   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME,
   #   LLAMA_STACK_LOGGING
   # See files/lightspeed/secret.example.yaml for a reference template.
-  existingSecretRef: ""
+  existingSecret: ""
   # -- Writable scratch volume for the sidecar (/tmp).
   runtimeVolume:
     # -- Volume type: "emptyDir" or "persistentVolumeClaim".
@@ -596,7 +596,7 @@ orchestrator:
     # -- External database connection. Used when postgresql.enabled is false.
     externalDB:
       # -- Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.
-      secretRef: ""
+      existingSecret: ""
       # -- Database name to connect to for the CREATE DATABASE command.
       name: ""
       # -- Database host (used in JDBC URLs).

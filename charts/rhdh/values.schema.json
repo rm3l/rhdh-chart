@@ -665,7 +665,7 @@
                     }
                 },
                 "enabled": true,
-                "existingSecretRef": "",
+                "existingSecret": "",
                 "plugins": [
                     {
                         "enabled": true,
@@ -1082,7 +1082,7 @@
                     "title": "Enable or disable the built-in Lightspeed feature.",
                     "type": "boolean"
                 },
-                "existingSecretRef": {
+                "existingSecret": {
                     "default": "",
                     "title": "Name of an existing Secret to inject via envFrom into the lightspeed-core container.",
                     "type": "string"
@@ -1836,6 +1836,11 @@
                         "externalDB": {
                             "additionalProperties": false,
                             "properties": {
+                                "existingSecret": {
+                                    "default": "",
+                                    "title": "Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.",
+                                    "type": "string"
+                                },
                                 "host": {
                                     "default": "",
                                     "title": "Database host (used in JDBC URLs).",
@@ -1849,11 +1854,6 @@
                                 "port": {
                                     "default": "",
                                     "title": "Database port (used in JDBC URLs).",
-                                    "type": "string"
-                                },
-                                "secretRef": {
-                                    "default": "",
-                                    "title": "Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.",
                                     "type": "string"
                                 }
                             },

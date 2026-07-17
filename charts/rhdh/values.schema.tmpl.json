@@ -874,7 +874,7 @@
                         }
                     }
                 },
-                "existingSecretRef": {
+                "existingSecret": {
                     "title": "Name of an existing Secret to inject via envFrom into the lightspeed-core container.",
                     "type": "string",
                     "default": ""
@@ -1285,7 +1285,7 @@
                             "type": "object",
                             "additionalProperties": false,
                             "properties": {
-                                "secretRef": {
+                                "existingSecret": {
                                     "title": "Name of a Secret containing POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD keys.",
                                     "type": "string",
                                     "default": ""

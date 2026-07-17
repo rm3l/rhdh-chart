@@ -393,10 +393,10 @@ spec:
             - name: http-lightspeed
               containerPort: 8080
               protocol: TCP
-          {{- if $lightspeed.existingSecretRef }}
+          {{- if $lightspeed.existingSecret }}
           envFrom:
             - secretRef:
-                name: {{ $lightspeed.existingSecretRef }}
+                name: {{ $lightspeed.existingSecret }}
           {{- end }}
           {{- with $lightspeed.core.extraEnv }}
           env:

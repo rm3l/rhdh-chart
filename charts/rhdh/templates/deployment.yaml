@@ -277,6 +277,36 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
             {{- end }}
         {{- end }}
+        {{- if or .Values.postgresql.enabled .Values.externalDatabase.host }}
+        - name: wait-for-db
+          image: {{ include "rhdh.image.render" (dict "image" .Values.postgresql.image "global" .Values.global) | quote }}
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy | default "IfNotPresent" | quote }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+          command:
+            - bash
+            - -c
+            - |
+              dbHost={{ include "rhdh.postgresql.host" . | quote }}
+              dbPort={{ .Values.externalDatabase.port | default 5432 | quote }}
+              echo "Waiting for DB at $dbHost:$dbPort..."
+              until timeout 2 bash -c ">/dev/tcp/$dbHost/$dbPort" 2>/dev/null; do
+                sleep 2
+              done
+              echo "DB is reachable!"
+        {{- end }}
         # --- User-additional init containers (appended) ---
         {{- with .Values.extraInitContainers }}
         {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}

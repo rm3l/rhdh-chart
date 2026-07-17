@@ -127,7 +127,7 @@ dynamicPlugins:
     # The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields.
     ephemeral:
       # -- StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass
-      # or the cluster default. Set to "-" to explicitly disable dynamic provisioning.
+      # or the cluster default.
       storageClassName: ""
       # -- Access modes for the ephemeral PVC.
       accessModes:

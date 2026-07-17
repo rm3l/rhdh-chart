@@ -1,1 +1,3 @@
-{}
+# FIXME(RHIDP-15458): remove this and keep this default-values file empty once next catalog index is stable with correct lightspeed refs in the DPDY
+lightspeed:
+  enabled: false

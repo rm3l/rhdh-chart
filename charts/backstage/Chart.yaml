@@ -48,4 +48,5 @@ sources: []
 # Note that when this chart is published to https://github.com/openshift-helm-charts/charts
 # it will follow the RHDH versioning 1.y.z
 version: 6.2.10
+# Deprecated in favor of the rhdh chart
 deprecated: true

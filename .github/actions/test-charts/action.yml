@@ -14,7 +14,7 @@ inputs:
     required: false
     default: 'false'
   chart:
-    description: 'Specific chart to test (e.g., charts/backstage). When set, only this chart is tested.'
+    description: 'Specific chart to test (e.g., charts/rhdh). When set, only this chart is tested.'
     required: false
     default: ''
   monitoring_heartbeat:
@@ -52,10 +52,8 @@ runs:
       run: |
         if [[ -n "$INPUT_CHART" ]]; then
           echo "changed=true" >> "$GITHUB_OUTPUT"
-          if [[ "$INPUT_CHART" == "charts/backstage" || "$INPUT_CHART" == "charts/rhdh" ]]; then
-            echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
-          fi
           if [[ "$INPUT_CHART" == "charts/rhdh" ]]; then
+            echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
             echo "externalDbNeeded=true" >> "$GITHUB_OUTPUT"
           fi
         elif [[ "$INPUT_ALL_CHARTS" == "true" ]]; then
@@ -66,10 +64,8 @@ runs:
           listChanged=$(ct list-changed --target-branch "$INPUT_TARGET_BRANCH")
           if [[ -n "$listChanged" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            if grep -E 'charts/backstage|charts/rhdh' <<< "$listChanged"; then
-              echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
-            fi
             if grep -q 'charts/rhdh' <<< "$listChanged"; then
+              echo "orchestratorCrdsNeeded=true" >> "$GITHUB_OUTPUT"
               echo "externalDbNeeded=true" >> "$GITHUB_OUTPUT"
             fi
           fi
@@ -278,14 +274,7 @@ runs:
         fi
 
         EXTRA_ARGS=()
-        if [[ -z "$INPUT_CHART" || "$INPUT_CHART" == "charts/backstage" ]]; then
-          EXTRA_ARGS+=(
-            "--set route.enabled=false"
-            "--set upstream.ingress.enabled=true"
-            "--set global.host=rhdh.127.0.0.1.sslip.io"
-            "--set upstream.backstage.podSecurityContext.fsGroup=1001"
-          )
-        elif [[ "$INPUT_CHART" == "charts/rhdh" ]]; then
+        if [[ "$INPUT_CHART" == "charts/rhdh" ]]; then
           # On vanilla K8s (KinD), there is no SCC to assign a common UID.
           # Set fsGroup so shared volumes (e.g. RAG data) are group-writable
           # across init containers and sidecars that may run as different UIDs.

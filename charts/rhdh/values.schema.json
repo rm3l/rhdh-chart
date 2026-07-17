@@ -32,7 +32,7 @@
                     },
                     "database": {
                         "connection": {
-                            "password": "${POSTGRESQL_ADMIN_PASSWORD}",
+                            "password": "${POSTGRES_PASSWORD}",
                             "user": "postgres"
                         }
                     }

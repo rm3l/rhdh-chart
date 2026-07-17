@@ -8,10 +8,10 @@ metadata:
   {{- if or .Values.commonAnnotations .Values.ingress.annotations }}
   annotations:
     {{- with .Values.commonAnnotations }}
-    {{- toYaml . | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
     {{- end }}
     {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
     {{- end }}
   {{- end }}
 spec:

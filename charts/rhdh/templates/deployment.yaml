@@ -49,7 +49,7 @@ spec:
       {{- include "rhdh.imagePullSecrets" . | nindent 6 }}
       {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
+        {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
@@ -76,13 +76,13 @@ spec:
         - name: dynamic-plugins-root
           {{- if eq .Values.dynamicPlugins.volume.type "emptyDir" }}
           emptyDir:
-            {{- toYaml .Values.dynamicPlugins.volume.emptyDir | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.volume.emptyDir "context" $) | nindent 12 }}
           {{- else if eq .Values.dynamicPlugins.volume.type "pvc" }}
           persistentVolumeClaim:
-            {{- toYaml .Values.dynamicPlugins.volume.pvc | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.volume.pvc "context" $) | nindent 12 }}
           {{- else }}
           ephemeral:
-            {{- toYaml .Values.dynamicPlugins.volume.ephemeral | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.volume.ephemeral "context" $) | nindent 12 }}
           {{- end }}
         - name: dynamic-plugins
           configMap:
@@ -152,7 +152,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           {{- with (.Values.dynamicPlugins.initContainer.securityContext | default .Values.containerSecurityContext) }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.dynamicPlugins.initContainer.commandOverride }}
           command:
@@ -265,7 +265,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           {{- with .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.command }}
           command:
@@ -293,19 +293,19 @@ spec:
             {{- end }}
           {{- with .Values.resources }}
           resources:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- with .Values.startupProbe }}
           startupProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
           {{- if or .Values.envFromOverride .Values.extraEnvFrom }}
           envFrom:

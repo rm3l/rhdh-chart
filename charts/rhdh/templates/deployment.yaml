@@ -162,9 +162,14 @@ spec:
             - ./install-dynamic-plugins.sh
             - /dynamic-plugins-root
           {{- end }}
-          {{- with .Values.dynamicPlugins.initContainer.argsOverride }}
+          {{- if .Values.dynamicPlugins.initContainer.argsOverride }}
           args:
-            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.dynamicPlugins.initContainer.argsOverride "context" $) | nindent 12 }}
+          {{- else if .Values.dynamicPlugins.initContainer.extraArgs }}
+          args:
+            {{- range .Values.dynamicPlugins.initContainer.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
           {{- end }}
           env:
             - name: NPM_CONFIG_USERCONFIG
@@ -237,6 +242,9 @@ spec:
               mkdir -p /rag-content/vector_db/notebooks &&
               chmod -R a+rwX /rag-content/embeddings_model /rag-content/vector_db &&
               echo 'Copy complete.'
+            {{- range $lightspeed.ragInit.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
           {{- end }}
           {{- with $lightspeed.ragInit.extraEnv }}
           env:
@@ -385,9 +393,14 @@ spec:
           command:
             {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
           {{- end }}
-          {{- with $lightspeed.core.argsOverride }}
+          {{- if $lightspeed.core.argsOverride }}
           args:
-            {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 12 }}
+            {{- include "common.tplvalues.render" (dict "value" $lightspeed.core.argsOverride "context" $) | nindent 12 }}
+          {{- else if $lightspeed.core.extraArgs }}
+          args:
+            {{- range $lightspeed.core.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
           {{- end }}
           ports:
             - name: http-lightspeed

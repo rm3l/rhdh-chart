@@ -144,6 +144,8 @@ dynamicPlugins:
     commandOverride: []
     # -- Override the default arguments. Leave empty to use the defaults.
     argsOverride: []
+    # -- Extra arguments appended after the default arguments. Ignored when argsOverride is set.
+    extraArgs: []
     # -- Extra environment variables appended after the system env vars
     # (NPM_CONFIG_USERCONFIG, MAX_ENTRY_SIZE, CATALOG_INDEX_IMAGE, etc.).
     extraEnv: []
@@ -523,6 +525,8 @@ lightspeed:
     commandOverride: []
     # -- Override the default arguments for the RAG init container.
     argsOverride: []
+    # -- Extra arguments appended after the default arguments. Ignored when argsOverride is set.
+    extraArgs: []
     extraEnv: []
     extraVolumeMounts: []
     resources:
@@ -553,6 +557,8 @@ lightspeed:
     commandOverride: []
     # -- Override the container's default args. Leave empty to use the image defaults.
     argsOverride: []
+    # -- Extra arguments appended after the default arguments. Ignored when argsOverride is set.
+    extraArgs: []
     extraEnv: []
     extraVolumeMounts: []
     resources:

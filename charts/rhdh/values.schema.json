@@ -278,6 +278,14 @@
                             "title": "Override the default command.",
                             "type": "array"
                         },
+                        "extraArgs": {
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.",
+                            "type": "array"
+                        },
                         "extraEnv": {
                             "default": [],
                             "title": "Extra environment variables appended after the system env vars.",
@@ -631,6 +639,7 @@
                 "core": {
                     "argsOverride": [],
                     "commandOverride": [],
+                    "extraArgs": [],
                     "extraEnv": [],
                     "extraVolumeMounts": [],
                     "image": {
@@ -679,6 +688,7 @@
                 "ragInit": {
                     "argsOverride": [],
                     "commandOverride": [],
+                    "extraArgs": [],
                     "extraEnv": [],
                     "extraVolumeMounts": [],
                     "image": {
@@ -815,6 +825,14 @@
                                 "type": "string"
                             },
                             "title": "Override the container's default command.",
+                            "type": "array"
+                        },
+                        "extraArgs": {
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.",
                             "type": "array"
                         },
                         "extraEnv": {
@@ -1143,6 +1161,14 @@
                                 "type": "string"
                             },
                             "title": "Override the default command.",
+                            "type": "array"
+                        },
+                        "extraArgs": {
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.",
                             "type": "array"
                         },
                         "extraEnv": {

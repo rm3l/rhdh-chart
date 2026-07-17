@@ -649,6 +649,12 @@
                             "type": "array",
                             "default": []
                         },
+                        "extraArgs": {
+                            "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.",
+                            "type": "array",
+                            "default": [],
+                            "items": { "type": "string" }
+                        },
                         "extraEnv": {
                             "title": "Extra environment variables appended after the system env vars.",
                             "type": "array",
@@ -944,6 +950,7 @@
                         "imagePullPolicy": { "type": "string", "default": "IfNotPresent", "enum": ["Always", "IfNotPresent", "Never"] },
                         "commandOverride": { "title": "Override the default command.", "type": "array", "items": { "type": "string" }, "default": [] },
                         "argsOverride": { "title": "Override the default arguments.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "extraArgs": { "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.", "type": "array", "items": { "type": "string" }, "default": [] },
                         "extraEnv": { "title": "Additional environment variables.", "type": "array", "items": { "type": "object" }, "default": [] },
                         "extraVolumeMounts": { "title": "Additional volume mounts.", "type": "array", "items": { "type": "object" }, "default": [] },
                         "resources": {
@@ -977,6 +984,7 @@
                         "imagePullPolicy": { "type": "string", "default": "IfNotPresent", "enum": ["Always", "IfNotPresent", "Never"] },
                         "commandOverride": { "title": "Override the container's default command.", "type": "array", "items": { "type": "string" }, "default": [] },
                         "argsOverride": { "title": "Override the container's default args.", "type": "array", "items": { "type": "string" }, "default": [] },
+                        "extraArgs": { "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.", "type": "array", "items": { "type": "string" }, "default": [] },
                         "extraEnv": { "title": "Additional environment variables.", "type": "array", "items": { "type": "object" }, "default": [] },
                         "extraVolumeMounts": { "title": "Additional volume mounts.", "type": "array", "items": { "type": "object" }, "default": [] },
                         "resources": {

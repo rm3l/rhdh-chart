@@ -131,7 +131,7 @@ Returns the Secret name for service-to-service auth.
     {{- if .Values.auth.backend.existingSecretRef.name -}}
         {{- .Values.auth.backend.existingSecretRef.name -}}
     {{- else -}}
-        {{- printf "%s-auth" .Release.Name -}}
+        {{- printf "%s-auth" (include "rhdh.fullname" .) -}}
     {{- end -}}
 {{- end -}}
 
@@ -212,7 +212,7 @@ Expects: dict "root" $ "key" <key> "entry" <config entry>
 {{- if .entry.existingConfigMap.name -}}
   {{- .entry.existingConfigMap.name -}}
 {{- else -}}
-  {{- printf "%s-lightspeed-%s" .root.Release.Name .key | trunc 63 | trimSuffix "-" -}}
+  {{- printf "%s-lightspeed-%s" (include "rhdh.fullname" .root) .key | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
@@ -278,6 +278,6 @@ The version suffix is preserved in full; only the prefix is truncated.
 */}}
 {{- define "rhdh.orchestrator.dbJobName" -}}
 {{- $versionSuffix := printf "-%s" (.Chart.Version | replace "." "-") -}}
-{{- $prefix := printf "%s-create-sf-db" .Release.Name | trunc (int (sub 63 (len $versionSuffix))) | trimSuffix "-" -}}
+{{- $prefix := printf "%s-create-sf-db" (include "rhdh.fullname" .) | trunc (int (sub 63 (len $versionSuffix))) | trimSuffix "-" -}}
 {{- printf "%s%s" $prefix $versionSuffix | lower -}}
 {{- end -}}

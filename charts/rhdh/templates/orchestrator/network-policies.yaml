@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-allow-infra-ns-to-workflow-ns
+  name: {{ include "rhdh.fullname" . }}-allow-infra-ns-to-workflow-ns
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
   {{- with .Values.commonAnnotations }}
@@ -26,7 +26,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-allow-external-communication
+  name: {{ include "rhdh.fullname" . }}-allow-external-communication
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
   {{- with .Values.commonAnnotations }}
@@ -46,7 +46,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-allow-intra-network
+  name: {{ include "rhdh.fullname" . }}-allow-intra-network
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
   {{- with .Values.commonAnnotations }}
@@ -66,7 +66,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ .Release.Name }}-allow-monitoring-to-sonataflow-and-workflows
+  name: {{ include "rhdh.fullname" . }}-allow-monitoring-to-sonataflow-and-workflows
   labels:
     {{- include "rhdh.labels" . | nindent 4 }}
   {{- with .Values.commonAnnotations }}

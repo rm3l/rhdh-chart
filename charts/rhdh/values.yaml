@@ -172,11 +172,10 @@ dynamicPlugins:
 
 # -- Catalog index configuration for automatic plugin discovery.
 catalogIndex:
-  # FIXME: re-enable and switch tag to "next" once the next catalog index image is stable
   image:
     registry: "quay.io"
     repository: "rhdh/plugin-catalog-index"
-    tag: "1.10.2"
+    tag: "next"
     digest: ""
   # -- Extra catalog index images for additional plugin discovery in the Extensions UI.
   # Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional.

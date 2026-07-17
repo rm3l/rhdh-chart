@@ -186,7 +186,7 @@ Kubernetes: `>= 1.31.0-0`
 | auth.backend.existingSecretRef.name | Name of the existing Secret. When empty, the chart generates one. | string | `""` |
 | auth.backend.value | Use a specific value instead of generating one. | string | `""` |
 | autoscaling | Horizontal Pod Autoscaler configuration. | object | `{"enabled":false,"maxReplicas":3,"minReplicas":1,"targetCPUUtilizationPercentage":80}` |
-| catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"1.10.2"}}` |
+| catalogIndex | Catalog index configuration for automatic plugin discovery. | object | `{"extraImages":[],"image":{"digest":"","registry":"quay.io","repository":"rhdh/plugin-catalog-index","tag":"next"}}` |
 | catalogIndex.extraImages | Extra catalog index images for additional plugin discovery in the Extensions UI. Each item must include `registry`, `repository`, and `tag` fields; `name` and `digest` are optional. Only catalog entities are extracted from extra images (no `dynamic-plugins.default.yaml` handling). | list | `[]` |
 | commandOverride | Override the container command. | list | `[]` |
 | commonAnnotations | Annotations applied to ALL chart resources. | object | `{}` |

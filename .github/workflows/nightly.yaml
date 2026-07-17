@@ -116,4 +116,4 @@ jobs:
           chart: charts/${{ matrix.chart }}
           all_charts: 'true'
           monitoring_heartbeat: ${{ vars.TEST_MONITORING_HEARTBEAT_ENABLED || 'false' }}
-          extra_helm_args: ${{ matrix.chart == 'backstage' && format('--set upstream.backstage.image.repository={0} --set upstream.backstage.image.tag={1} --set upstream.backstage.image.pullPolicy=Always', steps.image.outputs.repo, steps.image.outputs.tag) || '' }}
+          extra_helm_args: ${{ matrix.chart == 'rhdh' && format('--set image.repository={0} --set image.tag={1} --set image.pullPolicy=Always', steps.image.outputs.repo, steps.image.outputs.tag) || '' }}

@@ -118,6 +118,8 @@ dynamicPlugins:
     - "dynamic-plugins.default.yaml"
   # -- List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference.
   plugins: []
+  # -- Maximum uncompressed size (in bytes) of a single dynamic plugin entry.
+  maxEntrySize: 40000000
   # -- Volume configuration for the dynamic plugins root directory.
   volume:
     # -- Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart),

@@ -183,11 +183,11 @@ runs:
 
         # ── External PostgreSQL (ext-services namespace) ──
         # Extract the image from the rhdh chart values to stay in sync
-        PG_REGISTRY=$(yq '.postgresql.image.registry' "$RHDH_VALUES")
-        PG_REPOSITORY=$(yq '.postgresql.image.repository' "$RHDH_VALUES")
-        PG_TAG=$(yq '.postgresql.image.tag' "$RHDH_VALUES")
+        PG_REGISTRY=$(yq -r '.postgresql.image.registry' "$RHDH_VALUES")
+        PG_REPOSITORY=$(yq -r '.postgresql.image.repository' "$RHDH_VALUES")
+        PG_TAG=$(yq -r '.postgresql.image.tag' "$RHDH_VALUES")
         # Pin the chart version to match the rhdh chart dependency
-        PG_CHART_VERSION=$(yq '.dependencies[] | select(.name == "postgresql") | .version' charts/rhdh/Chart.yaml)
+        PG_CHART_VERSION=$(yq -r '.dependencies[] | select(.name == "postgresql") | .version' charts/rhdh/Chart.yaml)
         echo "[INFO] Using PostgreSQL chart version: ${PG_CHART_VERSION}"
         echo "[INFO] Using PostgreSQL image: ${PG_REGISTRY}/${PG_REPOSITORY}:${PG_TAG}"
 
@@ -199,9 +199,12 @@ runs:
           --set image.repository="$PG_REPOSITORY" \
           --set image.tag="$PG_TAG" \
           --set auth.postgresPassword=testpassword \
+          --set postgresqlDataDir=/var/lib/pgsql/data/userdata \
           --set primary.persistence.enabled=false \
           --set primary.podSecurityContext.enabled=false \
           --set primary.containerSecurityContext.enabled=false \
+          --set primary.extraEnvVars[0].name=POSTGRESQL_ADMIN_PASSWORD \
+          --set primary.extraEnvVars[0].value=testpassword \
           --wait --timeout 300s
 
         # ── Fixed test namespace (ct-charts) ──

@@ -308,6 +308,11 @@
                     "title": "Configuration for the install-dynamic-plugins init container.",
                     "type": "object"
                 },
+                "maxEntrySize": {
+                    "default": 40000000,
+                    "title": "Maximum uncompressed size (in bytes) of a single dynamic plugin entry.",
+                    "type": "integer"
+                },
                 "plugins": {
                     "items": {
                         "properties": {

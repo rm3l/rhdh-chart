@@ -189,7 +189,7 @@ spec:
             - name: NPM_CONFIG_USERCONFIG
               value: /opt/app-root/src/.npmrc.dynamic-plugins
             - name: MAX_ENTRY_SIZE
-              value: "40000000"
+              value: {{ .Values.dynamicPlugins.maxEntrySize | int | quote }}
             - name: CATALOG_INDEX_IMAGE
               value: {{ include "rhdh.image.render" (dict "image" .Values.catalogIndex.image "global" .Values.global) | quote }}
             - name: CATALOG_ENTITIES_EXTRACT_DIR

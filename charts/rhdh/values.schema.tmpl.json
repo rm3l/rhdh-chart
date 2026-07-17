@@ -609,6 +609,11 @@
                         "required": ["package"]
                     }
                 },
+                "maxEntrySize": {
+                    "title": "Maximum uncompressed size (in bytes) of a single dynamic plugin entry.",
+                    "type": "integer",
+                    "default": 40000000
+                },
                 "volume": {
                     "title": "Volume configuration for the dynamic plugins root directory.",
                     "type": "object",

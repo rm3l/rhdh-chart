@@ -308,7 +308,7 @@ Kubernetes: `>= 1.31.0-0`
 | serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |
-| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"}}` |
+| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"curl/curl","tag":"8.9.1"},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true}}` |
 | tolerations | Tolerations for pod assignment. | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
 

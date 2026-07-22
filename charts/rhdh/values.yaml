@@ -677,3 +677,9 @@ test:
     repository: "curl/curl"
     tag: "8.9.1"
     digest: ""
+    pullPolicy: "IfNotPresent"
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]

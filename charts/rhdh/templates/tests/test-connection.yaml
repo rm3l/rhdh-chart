@@ -12,13 +12,13 @@ metadata:
     helm.sh/hook: test
 spec:
   automountServiceAccountToken: false
+  {{- include "rhdh.imagePullSecrets" . | nindent 2 }}
   containers:
     - name: curl
+      {{- with .Values.test.securityContext }}
       securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        capabilities:
-          drop: ["ALL"]
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       resources:
         requests:
           cpu: 10m
@@ -34,7 +34,7 @@ spec:
           - ls
           - /usr/bin/curl
       image: {{ include "rhdh.image.render" (dict "image" .Values.test.image "global" .Values.global) | quote }}
-      imagePullPolicy: ""
+      imagePullPolicy: {{ .Values.test.image.pullPolicy | quote }}
       command: ["/bin/sh", "-c"]
       args:
         - |

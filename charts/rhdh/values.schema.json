@@ -2324,6 +2324,17 @@
                             "title": "Overrides the test pod image tag with an image digest.",
                             "type": "string"
                         },
+                        "pullPolicy": {
+                            "default": "IfNotPresent",
+                            "enum": [
+                                "",
+                                "Always",
+                                "Never",
+                                "IfNotPresent"
+                            ],
+                            "title": "Image pull policy for the test pod.",
+                            "type": "string"
+                        },
                         "registry": {
                             "default": "quay.io",
                             "title": "Registry to use for the test pod image.",
@@ -2341,6 +2352,34 @@
                         }
                     },
                     "title": "Image to use for the test pod. Note that the image needs to have both the `sh` and `curl` binaries in it.",
+                    "type": "object"
+                },
+                "securityContext": {
+                    "properties": {
+                        "allowPrivilegeEscalation": {
+                            "default": false,
+                            "type": "boolean"
+                        },
+                        "capabilities": {
+                            "properties": {
+                                "drop": {
+                                    "default": [
+                                        "ALL"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "readOnlyRootFilesystem": {
+                            "default": true,
+                            "type": "boolean"
+                        }
+                    },
+                    "title": "Security context for the test pod container.",
                     "type": "object"
                 }
             },

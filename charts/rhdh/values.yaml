@@ -51,8 +51,10 @@ appConfig:
       origin: 'https://{{- include "rhdh.hostname" . }}'
     database:
       connection:
+        host: ${POSTGRES_HOST}
+        port: ${POSTGRES_PORT}
+        user: ${POSTGRES_USER}
         password: ${POSTGRES_PASSWORD}
-        user: postgres
     auth:
       externalAccess:
         - type: legacy

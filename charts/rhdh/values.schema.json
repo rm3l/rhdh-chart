@@ -32,8 +32,10 @@
                     },
                     "database": {
                         "connection": {
+                            "host": "${POSTGRES_HOST}",
                             "password": "${POSTGRES_PASSWORD}",
-                            "user": "postgres"
+                            "port": "${POSTGRES_PORT}",
+                            "user": "${POSTGRES_USER}"
                         }
                     }
                 }

@@ -21,71 +21,78 @@ You can find configuration guidelines for:
 
 If you want to move Backstage database from local to external, here is a [Migration Guide](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/db_migration.md).
 
-### Create secret with PostgreSQL connection properties:
+### Create secret with the database password:
 ````yaml
 cat <<EOF | kubectl -n <your-namespace> create -f -
 apiVersion: v1
 kind: Secret
 metadata:
- name: <cred-secret>
+  name: <cred-secret>
 type: Opaque
 stringData:
- POSTGRES_PASSWORD: <password>
- POSTGRES_PORT: "<db-port>"
- POSTGRES_USER: <username>
- POSTGRES_HOST: <db-host>
- PGSSLMODE: require #  for TLS connection
- NODE_EXTRA_CA_CERTS: <abs-path-to-pem-file> # for TLS connection, e.g. /opt/app-root/src/postgres-crt.pem
+  POSTGRES_PASSWORD: <password>
 EOF
-````
-
-### Create secret with certificate(s):
-(omit this step if you do not need TLS connection, maybe for testing purpose)
-
-````yaml
-cat <<EOF | kubectl -n <your-namespace> create -f -
-apiVersion: v1
-kind: Secret
-metadata:
- name: <crt-secret>
-type: Opaque
-stringData:
- postgres-crt.pem: |-
-   -----BEGIN CERTIFICATE-----
-   MIIFqDCCA5CgAwIBAgIQHtOXCV/YtLNHcB6qvn9FszANBgkqhkiG9w0BAQwFADBl
-   ... 
 ````
 
 ### Configure your Helm Chart (values.yaml):
 
 ````yaml
 postgresql:
-  enabled: false  # disable PostgreSQL instance creation
+  enabled: false
 
 externalDatabase:
-  host: ${POSTGRES_HOST}
-  port: ${POSTGRES_PORT}
-  user: ${POSTGRES_USER}
+  host: <db-host>
+  port: <db-port>
+  user: <username>
   existingSecretRef:
     name: <cred-secret>
     key: POSTGRES_PASSWORD
+````
 
-appConfig:
-  backend:
-    database:
-      connection:
-        host: ${POSTGRES_HOST}
-        port: ${POSTGRES_PORT}
-        user: ${POSTGRES_USER}
-        password: ${POSTGRES_PASSWORD}
+The chart injects `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` as environment variables from the `externalDatabase` values and the referenced secret. The default `appConfig.backend.database.connection` already references these variables, so no `appConfig` override is needed for the database connection.
 
+### TLS configuration (optional)
+
+If your external database requires SSL/TLS, create two additional resources: a secret with the TLS environment variables and a secret with the certificate.
+
+#### TLS environment secret:
+````yaml
+cat <<EOF | kubectl -n <your-namespace> create -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <tls-env-secret>
+type: Opaque
+stringData:
+  PGSSLMODE: require
+  NODE_EXTRA_CA_CERTS: /opt/app-root/src/postgres-crt.pem
+EOF
+````
+
+#### Certificate secret:
+````yaml
+cat <<EOF | kubectl -n <your-namespace> create -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <crt-secret>
+type: Opaque
+stringData:
+  postgres-crt.pem: |-
+    -----BEGIN CERTIFICATE-----
+    MIIFqDCCA5CgAwIBAgIQHtOXCV/YtLNHcB6qvn9FszANBgkqhkiG9w0BAQwFADBl
+    ... 
+````
+
+#### Add TLS fields to your values.yaml:
+````yaml
 extraEnvFrom:
   - secretRef:
-      name: <cred-secret>  # inject credentials secret to Backstage container
+      name: <tls-env-secret>
 
 extraVolumeMounts:
   - mountPath: /opt/app-root/src/postgres-crt.pem
-    name: postgres-crt  # inject certificate secret to Backstage container
+    name: postgres-crt
     subPath: postgres-crt.pem
 
 extraVolumes:

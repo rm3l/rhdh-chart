@@ -85,10 +85,9 @@ auth:
 # -- Override the container command.
 commandOverride: []
 
-# -- Override the container arguments entirely. When set, system --config arguments
-# are NOT added automatically — you must include them yourself.
+# -- Override the container arguments entirely. When set, system config arguments are NOT added automatically; you must include them yourself.
 argsOverride: []
-# -- Extra arguments appended after the system --config flags.
+# -- Extra arguments appended after the system config flags.
 extraArgs: []
 
 # -- Override the container environment variables entirely. When set, system env vars

@@ -117,8 +117,8 @@ helm test <release_name>
 
 This will run a simple Pod in the cluster to check that the application deployed is up and running.
 
-You can control whether to disable this test pod or you can also customize the image it leverages.
-See the `test.enabled` and `test.image` parameters in the [`values.yaml`](./values.yaml) file.
+You can control whether to disable this test pod or customize the image, pull policy, and security context it uses.
+See the `test.enabled`, `test.image`, and `test.securityContext` parameters in the [`values.yaml`](./values.yaml) file.
 
 > **Tip**: Disabling the test pod will not prevent the `helm test` command from passing later on. It will simply report that no test suite is available.
 
@@ -178,7 +178,7 @@ Kubernetes: `>= 1.31.0-0`
 |-----|-------------|------|---------|
 | affinity | Affinity rules for pod assignment. | object | `{}` |
 | appConfig | Inline Backstage app-config YAML. Rendered into a ConfigMap and mounted as app-config-from-configmap.yaml. | object | Default config with base URLs, CORS, database connection, and backend auth. |
-| argsOverride |  | list | `[]` |
+| argsOverride | Override the container arguments entirely. When set, system config arguments are NOT added automatically; you must include them yourself. | list | `[]` |
 | auth | Service-to-service authentication configuration. | object | `{"backend":{"enabled":true,"existingSecretRef":{"key":"backend-secret","name":""},"value":""}}` |
 | auth.backend.enabled | Enable backend service-to-service authentication. Generates a random secret unless existingSecretRef is set or value is provided. Disable if you inject the secret via extraEnvFrom or extraEnv instead. | bool | `true` |
 | auth.backend.existingSecretRef | Reference an existing Secret instead of generating one. When not set, the chart auto-generates a random token. | object | `{"key":"backend-secret","name":""}` |
@@ -223,7 +223,7 @@ Kubernetes: `>= 1.31.0-0`
 | externalDatabase.port | External database port. | int | `5432` |
 | externalDatabase.user | External database user. | string | `"postgres"` |
 | extraAppConfig | Additional app-config files from existing ConfigMaps. | list | `[]` |
-| extraArgs |  | list | `[]` |
+| extraArgs | Extra arguments appended after the system config flags. | list | `[]` |
 | extraContainers | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them. | list | `[]` |
 | extraEnv | Extra environment variables appended after the system env vars. | list | `[]` |
 | extraEnvFrom | Extra envFrom entries appended to the container. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
@@ -470,44 +470,47 @@ Note that serverlessLogicOperator, and serverlessOperator are enabled by default
 
 Workflows running with Orchestrator may use the Notifications plugin.
 For this, you must enable the Notifications and Signals plugins.
-To do so, you would need to edit the [default Helm values.yaml](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/rhdh/values.yaml) file, and add the plugins listed below to the `dynamicPlugins.plugins` list.
+To do so, add the plugins listed below to the `dynamicPlugins.plugins` list in your values file.
 Do this before installing the Helm Chart, or upgrade the Helm release with the new values file.
 
 ```yaml
-- enabled: true
-  package: "./dynamic-plugins/dist/backstage-plugin-notifications"
-- enabled: true
-  package: "./dynamic-plugins/dist/backstage-plugin-signals"
-- enabled: true
-  package: "./dynamic-plugins/dist/backstage-plugin-notifications-backend-dynamic"
-- enabled: true
-  package: "./dynamic-plugins/dist/backstage-plugin-signals-backend-dynamic"
+dynamicPlugins:
+  plugins:
+    - enabled: true
+      package: "./dynamic-plugins/dist/backstage-plugin-notifications"
+    - enabled: true
+      package: "./dynamic-plugins/dist/backstage-plugin-signals"
+    - enabled: true
+      package: "./dynamic-plugins/dist/backstage-plugin-notifications-backend-dynamic"
+    - enabled: true
+      package: "./dynamic-plugins/dist/backstage-plugin-signals-backend-dynamic"
 ```
-Enabling these plugins will allow you to recieve notifications from workflows running with Orchestrator.
+Enabling these plugins will allow you to receive notifications from workflows running with Orchestrator.
 
 ### Using Orchestrator while configuring an ExternalDB
 
 To use orchestrator with an external DB, please follow the instructions in [our documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md)
 and populate the following values in the values.yaml:
-```bash
-    orchestrator:
-      sonataflowPlatform:
-        externalDBSecretRef: <cred-secret>
-        externalDBName: ""
-        externalDBHost: ""
-        externalDBPort: ""
+```yaml
+orchestrator:
+  sonataflowPlatform:
+    externalDB:
+      existingSecret: <cred-secret>
+      name: ""
+      host: ""
+      port: ""
 ```
-The values for externalDBHost and externalDBPort should match the ones configured in the cred-secret.
+The values for `host` and `port` should match the ones configured in the credential secret.
 
-Please note that `externalDBName` is the name of the user-configured existing database, not the database that the orchestrator and sonataflow resources will use.
+Please note that `externalDB.name` is the name of the user-configured existing database, not the database that the orchestrator and sonataflow resources will use.
 A Job will run to create the 'sonataflow' database in the external database for the workflows to use.
 
 Finally, install the Helm Chart (including [setting up the external DB](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md)):
 ```
 helm install <release_name> redhat-developer/redhat-developer-hub \
   --set orchestrator.enabled=true \
-  --set orchestrator.sonataflowPlatform.externalDBSecretRef=<cred-secret> \
-  --set orchestrator.sonataflowPlatform.externalDBName=example \
-  --set orchestrator.sonataflowPlatform.externalDBHost=example \
-  --set orchestrator.sonataflowPlatform.externalDBPort=example
+  --set orchestrator.sonataflowPlatform.externalDB.existingSecret=<cred-secret> \
+  --set orchestrator.sonataflowPlatform.externalDB.name=example \
+  --set orchestrator.sonataflowPlatform.externalDB.host=example \
+  --set orchestrator.sonataflowPlatform.externalDB.port=example
 ```

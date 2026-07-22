@@ -48,6 +48,7 @@ jobs:
         run: go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
 
       - name: Run pre-commit
+        id: precommit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         continue-on-error: true
         with:
@@ -89,10 +90,18 @@ jobs:
             git reset --mixed HEAD~1
           fi
 
-      - name: Fail if pre-commit changes are not committed
-        if: steps.check.outputs.changed == 'true' && steps.autopush.outputs.pushed != 'true'
+      - name: Re-run pre-commit after auto-push
+        if: steps.autopush.outputs.pushed == 'true'
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        with:
+          extra_args: --verbose --all-files --show-diff-on-failure
+
+      - name: Fail if pre-commit issues remain
+        if: >-
+          steps.precommit.outcome == 'failure' &&
+          (steps.check.outputs.changed != 'true' || steps.autopush.outputs.pushed != 'true')
         run: |
-          echo "::error::Pre-commit hooks modified files that need to be committed"
+          echo "::error::Pre-commit hooks detected issues that need to be fixed"
           echo ""
           echo "❌ The pre-commit hooks detected issues that need to be fixed."
           echo ""

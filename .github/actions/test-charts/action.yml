@@ -325,30 +325,28 @@ runs:
         # (Secrets, ConfigMaps) persist across all ci/ values file tests.
         kubectl create namespace ct-charts 2>/dev/null || true
         CT_ARGS+=(--namespace ct-charts)
-        # Only test upgrades from the previous revision if the chart exists on the target branch.
-        # New charts (not yet on the target branch) would fail dependency build on the previous revision.
+        # Test upgrades from the previous revision unless:
+        # - the chart is new (not on the target branch)
+        # - the chart version is unchanged
+        # - there is a major version bump
+        SKIP_UPGRADE=false
         if [[ -n "$INPUT_CHART" ]]; then
-          if git show "origin/$INPUT_TARGET_BRANCH:${INPUT_CHART}/Chart.yaml" &>/dev/null; then
-            CT_ARGS+=(--upgrade)
+          if ! git show "origin/$INPUT_TARGET_BRANCH:${INPUT_CHART}/Chart.yaml" &>/dev/null; then
+            echo "Skipping --upgrade: chart $INPUT_CHART is new (not on $INPUT_TARGET_BRANCH)"
+            SKIP_UPGRADE=true
           else
-            echo "Chart $INPUT_CHART is new (not on $INPUT_TARGET_BRANCH); skipping upgrade test."
+            old_version=$(git show "origin/$INPUT_TARGET_BRANCH:$INPUT_CHART/Chart.yaml" | yq '.version' 2>/dev/null || echo "0.0.0")
+            new_version=$(yq '.version' "$INPUT_CHART/Chart.yaml")
+            if [[ "$old_version" == "$new_version" ]]; then
+              echo "Skipping --upgrade: chart version unchanged ($old_version)"
+              SKIP_UPGRADE=true
+            elif [[ "${old_version%%.*}" != "${new_version%%.*}" ]]; then
+              echo "Skipping --upgrade: major version bump ($old_version -> $new_version)"
+              SKIP_UPGRADE=true
+            fi
           fi
-        else
-          CT_ARGS+=(--upgrade)
         fi
-        if [[ -n "$INPUT_CHART" ]]; then
-          old_version=$(git show "origin/$INPUT_TARGET_BRANCH:$INPUT_CHART/Chart.yaml" 2>/dev/null | yq '.version' 2>/dev/null || echo "0.0.0")
-          new_version=$(yq '.version' "$INPUT_CHART/Chart.yaml")
-          old_major=${old_version%%.*}
-          new_major=${new_version%%.*}
-          if [[ "$old_version" == "$new_version" ]]; then
-            echo "Skipping --upgrade: chart version unchanged ($old_version)"
-          elif [[ "$old_major" != "$new_major" ]]; then
-            echo "Skipping --upgrade: major version bump detected ($old_version -> $new_version)"
-          else
-            CT_ARGS+=(--upgrade)
-          fi
-        else
+        if [[ "$SKIP_UPGRADE" == "false" ]]; then
           CT_ARGS+=(--upgrade)
         fi
         if [[ "$RUNNER_DEBUG" == "1" ]]; then

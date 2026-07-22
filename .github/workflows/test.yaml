@@ -19,7 +19,7 @@ jobs:
       charts: ${{ steps.list.outputs.charts }}
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -69,12 +69,17 @@ jobs:
       fail-fast: false
       matrix:
         chart: ${{ fromJson(needs.discover-charts.outputs.charts) }}
-
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+
+      - name: Generate full-plugins values for template sanity check
+        if: matrix.chart == 'backstage'
+        run: |
+          yq e '{"global": {"dynamic": {"includes": .global.dynamic.includes}, "lightspeed": {"plugins": .global.lightspeed.plugins}}, "orchestrator": {"plugins": .orchestrator.plugins}}' \
+            charts/backstage/values.yaml > /tmp/backstage-full-plugins-values.yaml
 
       - name: Test charts
         uses: ./.github/actions/test-charts
@@ -82,6 +87,7 @@ jobs:
           target_branch: ${{ github.event.pull_request.base.ref }}
           chart: charts/${{ matrix.chart }}
           monitoring_heartbeat: ${{ vars.TEST_MONITORING_HEARTBEAT_ENABLED || 'false' }}
+          helm_template_values_file: ${{ matrix.chart == 'backstage' && '/tmp/backstage-full-plugins-values.yaml' || '' }}
 
   # Aligning job name with the OpenShift CI config: https://github.com/openshift/release/blob/master/core-services/prow/02_config/redhat-developer/rhdh-chart/_prowconfig.yaml#L18
   status:

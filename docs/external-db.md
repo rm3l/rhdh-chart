@@ -59,60 +59,43 @@ stringData:
 ### Configure your Helm Chart (values.yaml):
 
 ````yaml
-upstream:
- postgresql:
-   enabled: false  # disable PostgreSQL instance creation 
- backstage:
-   appConfig:
-     backend:
-       database:
-         connection:  # configure Backstage DB connection parameters
-           host: ${POSTGRES_HOST}
-           port: ${POSTGRES_PORT}
-           user: ${POSTGRES_USER}
-           password: ${POSTGRES_PASSWORD}
-   extraEnvVarsSecrets:
-     - <cred-secret> # inject credentials secret to Backstage cont.
-   extraEnvVars:
-     - name: BACKEND_SECRET
-       valueFrom:
-         secretKeyRef:
-           key: backend-secret
-           name: '{{ include "rhdh.backend-secret-name" $ }}'
-   extraVolumeMounts:
-     - mountPath: /opt/app-root/src/dynamic-plugins-root
-       name: dynamic-plugins-root
-     - mountPath: /opt/app-root/src/postgres-crt.pem
-       name: postgres-crt # inject certificate secret to Backstage cont.
-       subPath: postgres-crt.pem
-   extraVolumes:
-     - ephemeral:
-         volumeClaimTemplate:
-           spec:
-             accessModes:
-               - ReadWriteOnce
-             resources:
-               requests:
-                 storage: 1Gi
-       name: dynamic-plugins-root
-     - configMap:
-         defaultMode: 420
-         name: dynamic-plugins
-         optional: true
-       name: dynamic-plugins
-     - name: dynamic-plugins-npmrc
-       secret:
-         defaultMode: 420
-         optional: true
-         secretName: dynamic-plugins-npmrc
-     - name: postgres-crt
-       secret:
-         secretName: <crt-secret> 
+postgresql:
+  enabled: false  # disable PostgreSQL instance creation
+
+externalDatabase:
+  host: ${POSTGRES_HOST}
+  port: ${POSTGRES_PORT}
+  user: ${POSTGRES_USER}
+  existingSecretRef:
+    name: <cred-secret>
+    key: POSTGRES_PASSWORD
+
+appConfig:
+  backend:
+    database:
+      connection:
+        host: ${POSTGRES_HOST}
+        port: ${POSTGRES_PORT}
+        user: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+
+extraEnvFrom:
+  - secretRef:
+      name: <cred-secret>  # inject credentials secret to Backstage container
+
+extraVolumeMounts:
+  - mountPath: /opt/app-root/src/postgres-crt.pem
+    name: postgres-crt  # inject certificate secret to Backstage container
+    subPath: postgres-crt.pem
+
+extraVolumes:
+  - name: postgres-crt
+    secret:
+      secretName: <crt-secret>
 ````
 
 ### Apply Helm Chart:
 
 ````
-helm install -n <your-namespace> <your_release_name> redhat-developer/backstage -f values.yaml 
+helm install -n <your-namespace> <your_release_name> redhat-developer/redhat-developer-hub -f values.yaml 
 ````
-

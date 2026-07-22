@@ -6,7 +6,7 @@ inputs:
     description: 'Target branch for chart-testing'
     required: true
   extra_helm_args:
-    description: 'Extra Helm arguments to pass to ct install'
+    description: 'Individual --set overrides passed to ct install via --helm-extra-set-args'
     required: false
     default: ''
   all_charts:
@@ -18,7 +18,7 @@ inputs:
     required: false
     default: ''
   helm_extra_args:
-    description: 'Extra arguments to pass to helm via ct install --helm-extra-args (e.g., --values file.yaml)'
+    description: 'General helm flags (e.g. --values file.yaml) passed to ct install via --helm-extra-args'
     required: false
     default: ''
   helm_template_values_file:

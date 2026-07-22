@@ -4,3 +4,6 @@ dynamicPlugins:
   includes: []
 lightspeed:
   enabled: false
+  plugins: []
+orchestrator:
+  plugins: []

@@ -195,7 +195,7 @@ quay.io/rhdh-community/rhdh:next
 
 ### "Add, don't replace" pattern
 
-System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided values are always **appended** after the system defaults:
+System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided `extra*` values are always **appended** after the system defaults:
 
 - `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
 - `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
@@ -204,6 +204,8 @@ System-required volumes, volume mounts, environment variables, init containers, 
 - `extraContainers` — appended after the Lightspeed Core sidecar
 
 This means you never need to copy system defaults to add your own entries.
+
+If you need full control, the corresponding `*Override` fields (`envOverride`, `envFromOverride`, `commandOverride`, `argsOverride`) **replace** the system defaults entirely — nothing is auto-injected when an override is set.
 
 ### OpenShift Routes
 
@@ -228,9 +230,9 @@ Custom hosts are also supported via the following shorthand:
 host: backstage.example.com
 ```
 
-> Note: Setting either `host` or `openshift.clusterRouterBase` will disable the automatic hostname discovery.
-        When both fields are set, `host` will take precedence.
-        These are just templating shorthands. For full manual configuration please pay attention to values under the `openshift.route` key.
+> Note: The hostname is derived from `host` if set, otherwise from `openshift.clusterRouterBase` (as `<release-name>-<chart-name>.<clusterRouterBase>`).
+        When both fields are set, `host` takes precedence.
+        These are templating shorthands. For full manual control, configure the values under the `openshift.route` key directly.
 
 Any custom modifications to how backstage is being exposed may require additional changes to the `values.yaml`:
 
@@ -278,15 +280,12 @@ openshift:
 ingress:
   enabled: true  # Use Kubernetes Ingress instead of OpenShift Route
 podSecurityContext:  # Vanilla Kubernetes doesn't feature OpenShift default SCCs with dynamic UIDs, adjust accordingly to the deployed image
-  runAsUser: 1001
-  runAsGroup: 1001
   fsGroup: 1001
 postgresql:
   primary:
     podSecurityContext:
       enabled: true
       fsGroup: 26
-      runAsUser: 26
   volumePermissions:
     enabled: true
 ```

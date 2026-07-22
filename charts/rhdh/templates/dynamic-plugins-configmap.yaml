@@ -11,7 +11,7 @@ metadata:
 data:
   dynamic-plugins.yaml: |
     {{- $lightspeed := include "rhdh.lightspeed" . | fromYaml }}
-    {{- $dynamic := deepCopy .Values.dynamicPlugins }}
+    {{- $dynamic := dict "includes" .Values.dynamicPlugins.includes }}
     {{- $plugins := list }}
 
     {{- range .Values.dynamicPlugins.plugins }}

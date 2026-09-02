@@ -1,28 +1,26 @@
 # Migration guide: `backstage` chart (RHDH 1.y) to `redhat-developer-hub` chart (RHDH 2.y)
 
-The RHDH 2.y `redhat-developer-hub` chart is a clean break from the 1.y `backstage` chart.
+This `redhat-developer-hub` chart is a clean break from the 1.y `backstage` chart.
 The old chart delegated most Kubernetes resource creation to an embedded upstream
 [Backstage subchart](https://github.com/backstage/charts), so values lived under
 `upstream.backstage.*` and `global.*`. The new chart owns all templates directly and
 flattens configuration to root-level keys.
 
-Because the values structure has changed, you cannot pass your old values file
-directly to the new chart. You must migrate your values first, then
-`helm upgrade` the release in place. Tooling (a migration script or AI skill)
-to automate the values conversion is planned in the near future.
+> [!IMPORTANT]
+> Because the values structure has changed, you cannot pass your old values file
+> directly to the new chart. You must migrate your values first, then
+> `helm upgrade` the release in place. Tooling (a migration script or AI skill)
+> to automate the values conversion is planned in the near future.
 
 ## Migration steps
 
-1. Export your current user-supplied values (this returns only the overrides you
-   provided, not the chart defaults):
+1. Locate your existing values file (typically stored in your Git repo or
+   locally). If you don't have it, you can export the user-supplied overrides
+   from a running release:
 
    ```bash
    helm get values <release> -o yaml > old-values.yaml
    ```
-
-   > **Tip:** Add `-a` to include all computed values (user-supplied + chart
-   > defaults). This can be useful as a reference, but the file without `-a` is
-   > what you need to migrate.
 
 2. Create a new values file using the mapping tables below to translate each
    setting to its new path.
@@ -30,7 +28,7 @@ to automate the values conversion is planned in the near future.
 3. Upgrade the existing release in place with the new chart and migrated values:
 
    ```bash
-   helm upgrade <release> redhat-developer/redhat-developer-hub -f new-values.yaml
+   helm upgrade --install <release> redhat-developer/redhat-developer-hub -f new-values.yaml
    ```
 
 4. Verify the deployment is healthy.

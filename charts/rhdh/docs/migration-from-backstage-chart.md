@@ -37,7 +37,7 @@ flattens configuration to root-level keys.
 
 | Aspect | Old chart (`backstage`) | New chart (`redhat-developer-hub`) |
 |--------|------------------------|------------------------------------|
-| Chart name | `backstage` | `redhat-developer-hub` |
+| Chart name | `backstage` | `redhat-developer-hub` (but `nameOverride` defaults to `developer-hub`, so resource names and Route URLs are preserved) |
 | Template ownership | Delegates to upstream Backstage subchart | Owns all templates directly |
 | System volumes/mounts/env | User had to list them in full under `upstream.backstage.extraVolumes`, `extraVolumeMounts`, `extraEnvVars` | Hardcoded in templates; `extra*` keys only add user values |
 | Init containers | User had to specify the full init container array | System init containers are managed; use `preInitContainers` / `extraInitContainers` to add custom ones |

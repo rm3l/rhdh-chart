@@ -42,6 +42,8 @@ flattens configuration to root-level keys.
 | System volumes/mounts/env | User had to list them in full under `upstream.backstage.extraVolumes`, `extraVolumeMounts`, `extraEnvVars` | Hardcoded in templates; `extra*` keys only add user values |
 | Init containers | User had to specify the full init container array | System init containers are managed; use `preInitContainers` / `extraInitContainers` to add custom ones |
 | Database env vars | `POSTGRESQL_ADMIN_PASSWORD` injected manually via `upstream.backstage.extraEnvVars` | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD` auto-injected |
+| Image digests | No dedicated field | Every image (`image`, `catalogIndex.image`, `intelligentAssistant.core.image`, etc.) has a `digest` field for pinning by digest |
+| Global image registry | Not available | `global.imageRegistry` overrides the registry for all container images consistently — useful for disconnected / air-gapped environments |
 | Lightspeed | `global.lightspeed.*` | Rebranded to `intelligentAssistant.*` |
 | OpenShift Route | `route.*` | `openshift.route.*` |
 

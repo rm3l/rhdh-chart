@@ -154,6 +154,9 @@ spec:
               kubernetes.io/metadata.name: openshift-monitoring
         - namespaceSelector:
             matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+        - namespaceSelector:
+            matchLabels:
               kubernetes.io/metadata.name: gmp-system
         - namespaceSelector:
             matchLabels:

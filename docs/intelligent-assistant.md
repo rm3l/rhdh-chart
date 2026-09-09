@@ -251,7 +251,7 @@ OKP values are under `intelligentAssistant.okp.*`:
 ## Lightspeed Config Sync
 
 Vendored config files in `charts/rhdh/files/intelligent-assistant/` are synced from the upstream
-[lightspeed-configs](https://github.com/redhat-ai-dev/lightspeed-configs) repository:
+[rhdh-intelligent-assistant-configs](https://github.com/redhat-developer/rhdh-intelligent-assistant-configs) repository:
 
 ```bash
 hack/sync-lightspeed-configs.sh            # sync from main

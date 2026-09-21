@@ -413,7 +413,7 @@ postgresql:
     enabled: true
   image:
     registry: "quay.io"
-    repository: "fedora/postgresql-15"
+    repository: "fedora/postgresql-18"
     tag: "latest"
     digest: ""
   auth:

@@ -1,7 +1,7 @@
 
 # RHDH Helm Chart for OpenShift and Kubernetes
 
-![Version: 3.0.0](https://img.shields.io/badge/Version-3.0.0-informational?style=flat-square)
+![Version: 3.1.0](https://img.shields.io/badge/Version-3.1.0-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for deploying Red Hat Developer Hub, which is a Red Hat supported version of Backstage.
@@ -36,14 +36,14 @@ For the **Generally Available** version of this chart, see:
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add redhat-developer https://redhat-developer.github.io/rhdh-chart
 
-helm install my-rhdh redhat-developer/redhat-developer-hub --version 3.0.0
+helm install my-rhdh redhat-developer/redhat-developer-hub --version 3.1.0
 ```
 
 ## Introduction
 
 This chart bootstraps a [Red Hat Developer Hub](https://developers.redhat.com/rhdh) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `extraEnv`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
+Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment or StatefulSet, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. The Backstage pod specification is shared across workload kinds via a common template. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the pod template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `extraEnv`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
 
 ## Prerequisites
 
@@ -193,7 +193,7 @@ Kubernetes: `>= 1.31.0-0`
 | commonLabels | Labels applied to ALL chart resources. | object | `{}` |
 | containerSecurityContext | Security context for the main RHDH container (not the Lightspeed Core sidecar or init containers). | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` |
 | deploymentAnnotations | Annotations for the Deployment resource (not the pod). | object | `{}` |
-| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"initContainer":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}},"maxEntrySize":40000000,"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"type":"ephemeral"}}` |
+| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"initContainer":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}},"maxEntrySize":40000000,"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"statefulSetPVC":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"type":"ephemeral"}}` |
 | dynamicPlugins.includes | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). | list | `["dynamic-plugins.default.yaml"]` |
 | dynamicPlugins.initContainer | Configuration for the install-dynamic-plugins init container. | object | `{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}}` |
 | dynamicPlugins.initContainer.argsOverride | Override the default arguments. Leave empty to use the defaults. | list | `[]` |
@@ -205,14 +205,18 @@ Kubernetes: `>= 1.31.0-0`
 | dynamicPlugins.initContainer.securityContext | Security context for the init container. | object | Same as containerSecurityContext |
 | dynamicPlugins.maxEntrySize | Maximum uncompressed size (in bytes) of a single dynamic plugin entry. | int | `40000000` |
 | dynamicPlugins.plugins | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. | list | `[]` |
-| dynamicPlugins.volume | Volume configuration for the dynamic plugins root directory. | object | `{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"type":"ephemeral"}` |
+| dynamicPlugins.volume | Volume configuration for the dynamic plugins root directory. | object | `{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"statefulSetPVC":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"type":"ephemeral"}` |
 | dynamicPlugins.volume.emptyDir | Raw Kubernetes emptyDir volume spec. Used when type is "emptyDir". | object | `{}` |
 | dynamicPlugins.volume.ephemeral | Ephemeral volume configuration. Used when type is "ephemeral". The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields. | object | `{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""}` |
 | dynamicPlugins.volume.ephemeral.accessModes | Access modes for the ephemeral PVC. | list | `["ReadWriteOnce"]` |
 | dynamicPlugins.volume.ephemeral.resources | Resource requests for the ephemeral PVC. | object | `{"requests":{"storage":"5Gi"}}` |
 | dynamicPlugins.volume.ephemeral.storageClassName | StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. | string | `""` |
 | dynamicPlugins.volume.pvc | Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc". | object | `{"claimName":""}` |
-| dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). | string | `"ephemeral"` |
+| dynamicPlugins.volume.statefulSetPVC | StatefulSet-owned PVC volume spec. Used when type is "statefulSetPVC". | object | `{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""}` |
+| dynamicPlugins.volume.statefulSetPVC.accessModes | Access modes for the StatefulSet-owned PVC. | list | `["ReadWriteOnce"]` |
+| dynamicPlugins.volume.statefulSetPVC.resources | Resource requests for the StatefulSet-owned PVC. | object | `{"requests":{"storage":"5Gi"}}` |
+| dynamicPlugins.volume.statefulSetPVC.storageClassName | StorageClass. When empty, uses global.defaultStorageClass or the cluster default. | string | `""` |
+| dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), "pvc" (pre-existing PersistentVolumeClaim), or "statefulSetPVC" (StatefulSet volumeClaimTemplate; requires workload.kind=StatefulSet). | string | `"ephemeral"` |
 | envFromOverride | Override the container envFrom entirely. When set, extraEnvFrom is ignored. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
 | envOverride | Override the container environment variables entirely. When set, system env vars (BACKEND_SECRET, DB credentials, etc.) are NOT added automatically. | list | `[]` |
 | externalDatabase | External database connection. Used when postgresql.enabled is false. See docs/external-db.md for TLS setup and privilege requirements. When both postgresql.enabled and externalDatabase.host are false/empty, the chart renders no database env vars (BYO configuration via extraEnv or appConfig). | object | `{"existingSecretRef":{"key":"password","name":""},"host":"","port":5432,"user":"postgres"}` |
@@ -313,6 +317,14 @@ Kubernetes: `>= 1.31.0-0`
 | test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"curl/curl","tag":"8.22.0"},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true}}` |
 | tolerations | Tolerations for pod assignment. | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
+| workload | Kubernetes workload controller for Backstage pod. | object | `{"kind":"Deployment","statefulSet":{"annotations":{},"extraVolumeClaimTemplates":[],"persistentVolumeClaimRetentionPolicy":{},"podManagementPolicy":"","serviceName":"","updateStrategy":{}}}` |
+| workload.kind | Workload kind: Deployment (default) or StatefulSet. | string | `"Deployment"` |
+| workload.statefulSet.annotations | Annotations on the StatefulSet resource. | object | `{}` |
+| workload.statefulSet.extraVolumeClaimTemplates | Extra volumeClaimTemplates appended after the chart-managed dynamic-plugins-root claim (when type=statefulSetPVC). | list | `[]` |
+| workload.statefulSet.persistentVolumeClaimRetentionPolicy | Optional PVC retention policy for the StatefulSet. | object | `{}` |
+| workload.statefulSet.podManagementPolicy | Pod management policy for the StatefulSet. | string | `""` |
+| workload.statefulSet.serviceName | service name for the StatefulSet. Defaults to headless when empty. Service ({fullname}-headless) must match an existing service. | string | `""` |
+| workload.statefulSet.updateStrategy | StatefulSet update strategy. | object | `{}` |
 
 ## Opinionated RHDH deployment
 
@@ -351,7 +363,7 @@ quay.io/rhdh-community/rhdh:next
 
 ### "Add, don't replace" pattern
 
-System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided `extra*` values are always **appended** after the system defaults:
+System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Backstage pod template (used by both Deployment and StatefulSet). User-provided `extra*` values are always **appended** after the system defaults:
 
 - `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
 - `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
@@ -362,6 +374,94 @@ System-required volumes, volume mounts, environment variables, init containers, 
 This means you never need to copy system defaults to add your own entries.
 
 If you need full control, the corresponding `*Override` fields (`envOverride`, `envFromOverride`, `commandOverride`, `argsOverride`) **replace** the system defaults entirely — nothing is auto-injected when an override is set.
+
+### Workload kind (Deployment or StatefulSet)
+
+By default, the chart creates a Kubernetes **Deployment** (`workload.kind: Deployment`). To use a **StatefulSet** instead:
+
+```yaml
+# values.yaml
+workload:
+  kind: StatefulSet
+```
+
+Both kinds render the **same** Backstage pod (containers, volumes, probes, dynamic plugins, Intelligent Assistant, init containers). Only the workload controller changes; the pod definition is shared.
+
+**When to use StatefulSet**
+
+- You need StatefulSet-specific settings (`workload.statefulSet.updateStrategy`, `podManagementPolicy`, `extraVolumeClaimTemplates`, or optional PVC retention policy).
+- You want parity with the [RHDH Operator](https://github.com/redhat-developer/rhdh-operator), which supports `spec.deployment.kind: StatefulSet` ([operator documentation](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/configuration.md#deployment-kind)).
+
+Most installs should keep the default **Deployment** (no app StatefulSet and no headless Service).
+
+**Values that behave the same for both kinds**
+
+`replicaCount`, `autoscaling`, probes, `resources`, `dynamicPlugins`, `extraVolumes`, `podLabels`, `podAnnotations`, and other pod-level settings apply regardless of `workload.kind`. When `autoscaling.enabled` is `true`, the HorizontalPodAutoscaler scales the selected kind (`Deployment` or `StatefulSet`).
+
+**Values that depend on the workload kind**
+
+| Helm value | Deployment | StatefulSet |
+| ---------- | ---------- | ----------- |
+| Update strategy | `strategy` | `workload.statefulSet.updateStrategy` |
+| ReplicaSet revision history | `revisionHistoryLimit` | Not used |
+| Controller annotations (not the pod) | `deploymentAnnotations` | `workload.statefulSet.annotations` |
+| Shared controller annotations | `commonAnnotations` | `commonAnnotations` |
+| PVC claim templates | Not used | `workload.statefulSet.extraVolumeClaimTemplates` |
+| PVC retention policy | Not used | `workload.statefulSet.persistentVolumeClaimRetentionPolicy` |
+
+**StatefulSet-only settings**
+
+When `workload.kind` is `StatefulSet`, the chart also renders a **headless Service** (`{fullname}-headless`, `clusterIP: None`). The StatefulSet `serviceName` points at that Service (stable pod network identity).
+
+The existing **ClusterIP Service** (`templates/service.yaml`) is unchanged — OpenShift Routes, Ingress, and `helm test` still use it for application traffic.
+
+Override `workload.statefulSet.serviceName` only if you create your own governing Service.
+```yaml
+# values.yaml
+workload:
+  kind: StatefulSet
+  statefulSet:
+    serviceName: ""   # default: {fullname}-headless
+    podManagementPolicy: OrderedReady   # or Parallel; omit when empty
+    updateStrategy:
+      type: RollingUpdate
+    extraVolumeClaimTemplates: []
+    persistentVolumeClaimRetentionPolicy: {}
+    annotations: {}
+```
+
+**Stable dynamic-plugins storage**
+
+To give each pod a StatefulSet-owned PVC for `dynamic-plugins-root`:
+
+```yaml
+workload:
+  kind: StatefulSet
+dynamicPlugins:
+  volume:
+    type: statefulSetPVC
+    statefulSetPVC:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+```
+
+The chart injects a `volumeClaimTemplate` named `dynamic-plugins-root` and mounts it on the pod. Kubernetes creates one PVC per pod named `dynamic-plugins-root-{fullname}-{ordinal}` (for example `dynamic-plugins-root-my-rhdh-redhat-developer-hub-0`). This requires `workload.kind=StatefulSet`.
+
+To add additional StatefulSet-owned PVCs, use `workload.statefulSet.extraVolumeClaimTemplates`.
+
+**Changing `workload.kind` on an existing release**
+
+For a normal Helm-managed release, changing `workload.kind` and running `helm upgrade` replaces the rendered manifest: Helm removes the old workload kind (Deployment or StatefulSet) and creates the new one. Expect a brief cutover while pods are recreated. If you applied manifests outside Helm (for example GitOps that keeps both objects) or an old controller was left behind, delete the obsolete Deployment or StatefulSet so two controllers do not target the same selector.
+
+**Example install**
+
+```console
+helm upgrade -i my-rhdh redhat-developer/redhat-developer-hub \
+  --set workload.kind=StatefulSet
+```
 
 ### OpenShift Routes
 
@@ -459,7 +559,7 @@ Use `intelligentAssistant.runtimeVolume` to change the writable `/tmp` runtime s
 
 When using the built-in Intelligent Assistant feature, do not also keep those plugin packages in `dynamicPlugins.plugins`. Existing installations that previously configured Lightspeed or Intelligent Assistant there should remove those entries if the built-in defaults are sufficient, or move their custom package definitions to `intelligentAssistant.plugins`; otherwise the rendered `dynamic-plugins.yaml` will contain duplicate plugin entries.
 
-The Lightspeed Core sidecar loads `intelligentAssistant.existingSecret` as environment variables. If you update that Secret outside of Helm, Kubernetes does not guarantee that the Backstage Pod restarts automatically. Use a no-op `helm upgrade` or manually restart the Backstage deployment after changing the secret data.
+The Lightspeed Core sidecar loads `intelligentAssistant.existingSecret` as environment variables. If you update that Secret outside of Helm, Kubernetes does not guarantee that the Backstage Pod restarts automatically. Use a no-op `helm upgrade` or manually restart the Backstage workload (Deployment or StatefulSet) after changing the secret data.
 
 RHDH documentation retrieval is disabled by default in Intelligent Assistant. To enable it, set `intelligentAssistant.okp.enabled=true`. This deploys the OKP workload and uses the OKP-enabled Lightspeed Stack configuration. The OKP container image is large, so enabling it can significantly increase the initial installation time while the image is downloaded. On vanilla Kubernetes, you must also configure the OKP Ingress and Red Hat registry credentials. See [Intelligent Assistant and OKP integration](../../docs/intelligent-assistant.md) for platform-specific configuration.
 

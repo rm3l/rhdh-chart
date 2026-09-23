@@ -13,7 +13,7 @@ Before making a contribution to the charts in this repository, you will need to 
 
 ## Sync Lightspeed Core vendored config files
 
-The Lightspeed Core config files under [`charts/rhdh/files/intelligent-assistant`](./charts/rhdh/files/intelligent-assistant) are synced from the upstream [redhat-ai-dev/lightspeed-configs](https://github.com/redhat-ai-dev/lightspeed-configs) repository by [`hack/sync-lightspeed-configs.sh`](./hack/sync-lightspeed-configs.sh).
+The Lightspeed Core config files under [`charts/rhdh/files/intelligent-assistant`](./charts/rhdh/files/intelligent-assistant) are synced from the upstream [redhat-developer/rhdh-intelligent-assistant-configs](https://github.com/redhat-developer/rhdh-intelligent-assistant-configs) repository by [`hack/sync-lightspeed-configs.sh`](./hack/sync-lightspeed-configs.sh).
 
 Use the default upstream branch:
 
@@ -34,5 +34,7 @@ Verify the vendored files are already in sync without writing changes:
 ./hack/sync-lightspeed-configs.sh --ref main --check
 ```
 
-The script copies the upstream `lightspeed-stack.yaml`, `config.yaml`, and `rhdh-profile.py` files into [`charts/rhdh/files/intelligent-assistant`](./charts/rhdh/files/intelligent-assistant). The RHDH chart does not vendor a Lightspeed Core `secret.yaml`; supply provider credentials with `intelligentAssistant.existingSecret`.
+The script copies the upstream `lightspeed-stack.yaml` and `rhdh-profile.py` files into [`charts/rhdh/files/intelligent-assistant`](./charts/rhdh/files/intelligent-assistant). The RHDH chart does not vendor a Lightspeed Core `secret.yaml`; supply provider credentials with `intelligentAssistant.existingSecret`.
+
+After syncing, preserve the chart-specific commented `rag` block and its OKP integration TODO in `lightspeed-stack.yaml`. This temporary downstream patch means `--check` reports a difference for that file.
 Choose the upstream branch or tag that matches the Lightspeed Core release you want to vendor.

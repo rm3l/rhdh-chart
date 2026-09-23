@@ -8,13 +8,15 @@ extraAppConfig:
 intelligentAssistant:
   plugins: []
   existingSecret: "test-lightspeed-secret"
+  okp:
+    route:
+      enabled: false
+    ingress:
+      enabled: false
   config:
     stack:
       existingConfigMap:
         name: "test-lightspeed-stack"
-    server:
-      existingConfigMap:
-        name: "test-lightspeed-server"
     profile:
       existingConfigMap:
         name: "test-lightspeed-profile"

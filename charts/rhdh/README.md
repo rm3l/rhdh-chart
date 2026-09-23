@@ -1,7 +1,7 @@
 
 # RHDH Helm Chart for OpenShift and Kubernetes
 
-![Version: 2.0.1](https://img.shields.io/badge/Version-2.0.1-informational?style=flat-square)
+![Version: 3.2.2](https://img.shields.io/badge/Version-3.2.2-informational?style=flat-square)
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for deploying Red Hat Developer Hub, which is a Red Hat supported version of Backstage.
@@ -36,14 +36,14 @@ For the **Generally Available** version of this chart, see:
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add redhat-developer https://redhat-developer.github.io/rhdh-chart
 
-helm install my-rhdh redhat-developer/redhat-developer-hub --version 2.0.1
+helm install my-rhdh redhat-developer/redhat-developer-hub --version 3.2.2
 ```
 
 ## Introduction
 
 This chart bootstraps a [Red Hat Developer Hub](https://developers.redhat.com/rhdh) deployment on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the Deployment template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `extraEnv`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
+Unlike the legacy `backstage` chart, this chart owns all Kubernetes templates directly (Deployment or StatefulSet, Service, ConfigMap, etc.) without depending on an upstream Backstage subchart. The Backstage pod specification is shared across workload kinds via a common template. It uses an **"add, don't replace"** pattern: system-required volumes, volume mounts, environment variables, and init containers are hardcoded in the pod template, while user-provided values (`extraVolumes`, `extraVolumeMounts`, `extraEnv`, `extraInitContainers`, `extraContainers`) are always appended — never replacing the defaults.
 
 ## Prerequisites
 
@@ -169,7 +169,7 @@ Kubernetes: `>= 1.31.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.bitnami.com/bitnami | common | 2.40.0 |
+| https://charts.bitnami.com/bitnami | common | 2.41.0 |
 | oci://registry-1.docker.io/bitnamicharts | postgresql | 16.2.5 |
 
 ## Values
@@ -193,7 +193,7 @@ Kubernetes: `>= 1.31.0-0`
 | commonLabels | Labels applied to ALL chart resources. | object | `{}` |
 | containerSecurityContext | Security context for the main RHDH container (not the Lightspeed Core sidecar or init containers). | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` |
 | deploymentAnnotations | Annotations for the Deployment resource (not the pod). | object | `{}` |
-| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"initContainer":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}},"maxEntrySize":40000000,"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"type":"ephemeral"}}` |
+| dynamicPlugins | Dynamic plugin system configuration. | object | `{"includes":["dynamic-plugins.default.yaml"],"initContainer":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}},"maxEntrySize":40000000,"plugins":[],"volume":{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"statefulSetPVC":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"type":"ephemeral"}}` |
 | dynamicPlugins.includes | Array of YAML files listing dynamic plugins to include. Relative paths are resolved from the working directory of the initContainer (`/opt/app-root/src`). | list | `["dynamic-plugins.default.yaml"]` |
 | dynamicPlugins.initContainer | Configuration for the install-dynamic-plugins init container. | object | `{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"resources":{"limits":{"cpu":"1000m","ephemeral-storage":"5Gi","memory":"2.5Gi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{}}` |
 | dynamicPlugins.initContainer.argsOverride | Override the default arguments. Leave empty to use the defaults. | list | `[]` |
@@ -205,14 +205,18 @@ Kubernetes: `>= 1.31.0-0`
 | dynamicPlugins.initContainer.securityContext | Security context for the init container. | object | Same as containerSecurityContext |
 | dynamicPlugins.maxEntrySize | Maximum uncompressed size (in bytes) of a single dynamic plugin entry. | int | `40000000` |
 | dynamicPlugins.plugins | List of dynamic plugins. Every item defines the plugin `package` as a NPM package spec or OCI reference. | list | `[]` |
-| dynamicPlugins.volume | Volume configuration for the dynamic plugins root directory. | object | `{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"type":"ephemeral"}` |
+| dynamicPlugins.volume | Volume configuration for the dynamic plugins root directory. | object | `{"emptyDir":{},"ephemeral":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"pvc":{"claimName":""},"statefulSetPVC":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""},"type":"ephemeral"}` |
 | dynamicPlugins.volume.emptyDir | Raw Kubernetes emptyDir volume spec. Used when type is "emptyDir". | object | `{}` |
 | dynamicPlugins.volume.ephemeral | Ephemeral volume configuration. Used when type is "ephemeral". The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields. | object | `{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""}` |
 | dynamicPlugins.volume.ephemeral.accessModes | Access modes for the ephemeral PVC. | list | `["ReadWriteOnce"]` |
 | dynamicPlugins.volume.ephemeral.resources | Resource requests for the ephemeral PVC. | object | `{"requests":{"storage":"5Gi"}}` |
 | dynamicPlugins.volume.ephemeral.storageClassName | StorageClass for the ephemeral volume. When empty, uses global.defaultStorageClass or the cluster default. | string | `""` |
 | dynamicPlugins.volume.pvc | Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc". | object | `{"claimName":""}` |
-| dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), or "pvc" (pre-existing PersistentVolumeClaim). | string | `"ephemeral"` |
+| dynamicPlugins.volume.statefulSetPVC | StatefulSet-owned PVC volume spec. Used when type is "statefulSetPVC". | object | `{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":""}` |
+| dynamicPlugins.volume.statefulSetPVC.accessModes | Access modes for the StatefulSet-owned PVC. | list | `["ReadWriteOnce"]` |
+| dynamicPlugins.volume.statefulSetPVC.resources | Resource requests for the StatefulSet-owned PVC. | object | `{"requests":{"storage":"5Gi"}}` |
+| dynamicPlugins.volume.statefulSetPVC.storageClassName | StorageClass. When empty, uses global.defaultStorageClass or the cluster default. | string | `""` |
+| dynamicPlugins.volume.type | Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart), "pvc" (pre-existing PersistentVolumeClaim), or "statefulSetPVC" (StatefulSet volumeClaimTemplate; requires workload.kind=StatefulSet). | string | `"ephemeral"` |
 | envFromOverride | Override the container envFrom entirely. When set, extraEnvFrom is ignored. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
 | envOverride | Override the container environment variables entirely. When set, system env vars (BACKEND_SECRET, DB credentials, etc.) are NOT added automatically. | list | `[]` |
 | externalDatabase | External database connection. Used when postgresql.enabled is false. See docs/external-db.md for TLS setup and privilege requirements. When both postgresql.enabled and externalDatabase.host are false/empty, the chart renders no database env vars (BYO configuration via extraEnv or appConfig). | object | `{"existingSecretRef":{"key":"password","name":""},"host":"","port":5432,"user":"postgres"}` |
@@ -227,7 +231,7 @@ Kubernetes: `>= 1.31.0-0`
 | extraContainers | Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed Core sidecar), never replacing them. | list | `[]` |
 | extraEnv | Extra environment variables appended after the system env vars. | list | `[]` |
 | extraEnvFrom | Extra envFrom entries appended to the container. Accepts raw Kubernetes envFrom entries (configMapRef, secretRef, prefix). | list | `[]` |
-| extraInitContainers | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Intelligent Assistant RAG init), never replacing them. | list | `[]` |
+| extraInitContainers | Additional init containers. These are ADDED after system init containers (install-dynamic-plugins), never replacing them. | list | `[]` |
 | extraVolumeMounts | Additional volume mounts to add to the main container. These are ADDED to system-required mounts, never replacing them. | list | `[]` |
 | extraVolumes | Additional volumes to add to the pod. These are ADDED to system-required volumes (dynamic-plugins-root, temp, npmcacache, etc.), never replacing them. | list | `[]` |
 | fullnameOverride | Override the full resource name. | string | `""` |
@@ -243,40 +247,42 @@ Kubernetes: `>= 1.31.0-0`
 | image.digest | Overrides the image tag with an image digest. | string | `""` |
 | imagePullSecrets | Secrets for pulling images from private registries (merged with global.imagePullSecrets). | list | `[]` |
 | ingress | Kubernetes Ingress configuration. | object | `{"annotations":{},"className":"","enabled":false,"hosts":[{"host":"{{ .Values.host }}","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}],"tls":[]}` |
-| intelligentAssistant | Built-in Intelligent Assistant feature configuration. | object | `{"config":{"profile":{"existingConfigMap":{"key":"","name":""}},"server":{"existingConfigMap":{"key":"","name":""}},"stack":{"existingConfigMap":{"key":"","name":""}}},"core":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.6.2"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"enabled":true,"existingSecret":"","plugins":[{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend"}],"ragInit":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"redhat-ai-dev/rag-content","tag":"release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"runtimeVolume":{"emptyDir":{},"persistentVolumeClaim":{},"type":"emptyDir"}}` |
-| intelligentAssistant.config | Configuration files mounted into the sidecar. By default, the chart creates ConfigMaps from bundled source files. Set existingConfigMap to use a pre-existing ConfigMap instead. | object | `{"profile":{"existingConfigMap":{"key":"","name":""}},"server":{"existingConfigMap":{"key":"","name":""}},"stack":{"existingConfigMap":{"key":"","name":""}}}` |
+| intelligentAssistant | Built-in Intelligent Assistant feature configuration. | object | `{"config":{"profile":{"existingConfigMap":{"key":"","name":""}},"stack":{"existingConfigMap":{"key":"","name":""}}},"core":{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.7.0rc3"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}},"enabled":true,"existingSecret":"","okp":{"affinity":{},"enabled":false,"httpd":{"compressed":"true","encrypt":"false","serverName":"localhost"},"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"registry.redhat.io","repository":"offline-knowledge-portal/rhokp-rhel9","tag":"1.2.12-1788274041"},"imagePullSecrets":[],"ingress":{"annotations":{},"className":"","enabled":true,"host":"","tls":{"enabled":false,"secretName":""}},"livenessProbe":{"initialDelaySeconds":30,"periodSeconds":30},"nodeSelector":{},"readinessProbe":{"initialDelaySeconds":10,"periodSeconds":10},"replicaCount":1,"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"200m","memory":"2Gi"}},"route":{"enabled":true,"tls":{"insecureEdgeTerminationPolicy":"Redirect","termination":"edge"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}},"service":{"type":"ClusterIP"},"solr":{"hostBind":"0.0.0.0","memory":"1g"},"tolerations":[],"topologySpreadConstraints":[]},"plugins":[{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend"}],"runtimeVolume":{"emptyDir":{},"persistentVolumeClaim":{},"type":"emptyDir"}}` |
+| intelligentAssistant.config | Configuration files mounted into the sidecar. By default, the chart creates ConfigMaps from bundled source files. Set existingConfigMap to use a pre-existing ConfigMap instead. | object | `{"profile":{"existingConfigMap":{"key":"","name":""}},"stack":{"existingConfigMap":{"key":"","name":""}}}` |
 | intelligentAssistant.config.profile | Python profile with prompt templates (rhdh-profile.py). | object | `{"existingConfigMap":{"key":"","name":""}}` |
 | intelligentAssistant.config.profile.existingConfigMap | Use an existing ConfigMap instead of the bundled default. | object | Created from bundled rhdh-profile.py |
 | intelligentAssistant.config.profile.existingConfigMap.key | Key within the ConfigMap that holds the file content. Defaults to the bundled filename (rhdh-profile.py) if not set. | string | `""` |
 | intelligentAssistant.config.profile.existingConfigMap.name | Name of the existing ConfigMap. | string | `""` |
-| intelligentAssistant.config.server | Llama Stack server configuration (config.yaml). | object | `{"existingConfigMap":{"key":"","name":""}}` |
-| intelligentAssistant.config.server.existingConfigMap | Use an existing ConfigMap instead of the bundled default. | object | Created from bundled config.yaml |
-| intelligentAssistant.config.server.existingConfigMap.key | Key within the ConfigMap that holds the file content. Defaults to the bundled filename (config.yaml) if not set. | string | `""` |
-| intelligentAssistant.config.server.existingConfigMap.name | Name of the existing ConfigMap. | string | `""` |
 | intelligentAssistant.config.stack | Lightspeed Core service configuration (lightspeed-stack.yaml). | object | `{"existingConfigMap":{"key":"","name":""}}` |
 | intelligentAssistant.config.stack.existingConfigMap | Use an existing ConfigMap instead of the bundled default. | object | Created from bundled lightspeed-stack.yaml |
 | intelligentAssistant.config.stack.existingConfigMap.key | Key within the ConfigMap that holds the file content. Defaults to the bundled filename (lightspeed-stack.yaml) if not set. | string | `""` |
 | intelligentAssistant.config.stack.existingConfigMap.name | Name of the existing ConfigMap. | string | `""` |
-| intelligentAssistant.core | Lightspeed Core sidecar container. | object | `{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.6.2"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}` |
-| intelligentAssistant.core.argsOverride | Override the container's default args. Leave empty to use the image defaults. | list | `[]` |
+| intelligentAssistant.core | Lightspeed Core sidecar container. | object | `{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"lightspeed-core/lightspeed-stack","tag":"0.7.0rc3"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"1000m","memory":"2Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}` |
+| intelligentAssistant.core.argsOverride | Override the container's default args. Leave empty to use the chart defaults. | list | `[]` |
 | intelligentAssistant.core.commandOverride | Override the container's default command. Leave empty to use the image entrypoint. | list | `[]` |
 | intelligentAssistant.core.extraArgs | Extra arguments appended after the default arguments. Ignored when argsOverride is set. | list | `[]` |
-| intelligentAssistant.existingSecret | Name of an existing Secret to inject via envFrom into the lightspeed-core container. If empty, no secret is mounted. Expected keys (all optional — only set the ones for the providers you use):   ENABLE_VLLM, VLLM_URL, VLLM_API_KEY, VLLM_MAX_TOKENS, VLLM_TLS_VERIFY,   ENABLE_OPENAI, OPENAI_API_KEY,   ENABLE_VERTEX_AI, VERTEX_AI_PROJECT, VERTEX_AI_LOCATION, GOOGLE_APPLICATION_CREDENTIALS,   ENABLE_OLLAMA, OLLAMA_URL,   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME,   LLAMA_STACK_LOGGING See files/intelligent-assistant/secret.example.yaml for a reference template. | string | `""` |
+| intelligentAssistant.existingSecret | Name of an existing Secret that supplies credentials and settings to the lightspeed-core container. Configure the provider itself in lightspeed-stack.yaml. If empty, no Secret is loaded. Expected keys (all optional; include only keys used by the configured provider):   VLLM_URL, VLLM_API_KEY, VLLM_MAX_TOKENS, VLLM_TLS_VERIFY,   OPENAI_API_KEY,   VERTEX_AI_PROJECT, VERTEX_AI_LOCATION, GOOGLE_APPLICATION_CREDENTIALS,   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME Set ENABLE_VALIDATION to question_validity to enable validation. GOOGLE_APPLICATION_CREDENTIALS must be a path to a credentials file mounted in the sidecar. See files/intelligent-assistant/secret.example.yaml for a reference template. | string | `""` |
+| intelligentAssistant.okp | OKP (Offline Knowledge Portal) configuration. Deploys an OKP instance for RHDH documentation retrieval when explicitly enabled. The image is large and can significantly increase initial installation time. | object | `{"affinity":{},"enabled":false,"httpd":{"compressed":"true","encrypt":"false","serverName":"localhost"},"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"registry.redhat.io","repository":"offline-knowledge-portal/rhokp-rhel9","tag":"1.2.12-1788274041"},"imagePullSecrets":[],"ingress":{"annotations":{},"className":"","enabled":true,"host":"","tls":{"enabled":false,"secretName":""}},"livenessProbe":{"initialDelaySeconds":30,"periodSeconds":30},"nodeSelector":{},"readinessProbe":{"initialDelaySeconds":10,"periodSeconds":10},"replicaCount":1,"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"200m","memory":"2Gi"}},"route":{"enabled":true,"tls":{"insecureEdgeTerminationPolicy":"Redirect","termination":"edge"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}},"service":{"type":"ClusterIP"},"solr":{"hostBind":"0.0.0.0","memory":"1g"},"tolerations":[],"topologySpreadConstraints":[]}` |
+| intelligentAssistant.okp.affinity | Pod scheduling: affinity rules for the OKP pod. | object | `{}` |
+| intelligentAssistant.okp.enabled | Enable OKP-backed RHDH documentation retrieval. Disabled by default on all platforms. | bool | `false` |
+| intelligentAssistant.okp.imagePullSecrets | Image pull secrets for the OKP container image. Required on vanilla Kubernetes to authenticate with registry.redhat.io. Not needed on OpenShift where the cluster-wide pull secret covers Red Hat registries. | list | `[]` |
+| intelligentAssistant.okp.livenessProbe | Liveness probe configuration for the OKP container. | object | `{"initialDelaySeconds":30,"periodSeconds":30}` |
+| intelligentAssistant.okp.nodeSelector | Pod scheduling: node selector for the OKP pod. | object | `{}` |
+| intelligentAssistant.okp.readinessProbe | Readiness probe configuration for the OKP container. | object | `{"initialDelaySeconds":10,"periodSeconds":10}` |
+| intelligentAssistant.okp.securityContext | OKP container security context. readOnlyRootFilesystem is not set because Solr (Lucene) writes a lock file into its pre-built index directory at runtime. | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}` |
+| intelligentAssistant.okp.tolerations | Pod scheduling: tolerations for the OKP pod. | list | `[]` |
+| intelligentAssistant.okp.topologySpreadConstraints | Pod scheduling: topology spread constraints for the OKP pod. | list | `[]` |
 | intelligentAssistant.plugins | Intelligent Assistant dynamic plugin packages. | list | `[{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend"}]` |
-| intelligentAssistant.ragInit | RAG data bootstrap init container. | object | `{"argsOverride":[],"commandOverride":[],"extraArgs":[],"extraEnv":[],"extraVolumeMounts":[],"image":{"digest":"","registry":"quay.io","repository":"redhat-ai-dev/rag-content","tag":"release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"},"imagePullPolicy":"IfNotPresent","resources":{"limits":{"cpu":"100m","memory":"500Mi"},"requests":{"cpu":"50m","memory":"150Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}}}` |
-| intelligentAssistant.ragInit.argsOverride | Override the default arguments for the RAG init container. | list | `[]` |
-| intelligentAssistant.ragInit.commandOverride | Override the default command for the RAG init container. | list | `[]` |
-| intelligentAssistant.ragInit.extraArgs | Extra arguments appended after the default arguments. Ignored when argsOverride is set. | list | `[]` |
 | intelligentAssistant.runtimeVolume | Writable scratch volume for the sidecar (/tmp). | object | `{"emptyDir":{},"persistentVolumeClaim":{},"type":"emptyDir"}` |
 | intelligentAssistant.runtimeVolume.type | Volume type: "emptyDir" or "persistentVolumeClaim". | string | `"emptyDir"` |
 | livenessProbe | Liveness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":4}` |
 | metrics | Prometheus metrics configuration. | object | `{"serviceMonitor":{"annotations":{},"enabled":false,"interval":"","labels":{},"path":"/metrics","port":"http-metrics"}}` |
 | nameOverride | Override the chart name used in resource naming. | string | `"developer-hub"` |
 | nodeSelector | Node labels for pod assignment. | object | `{}` |
-| openshift | OpenShift-specific configuration. | object | `{"clusterRouterBase":"apps.example.com","route":{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}}` |
+| openshift | OpenShift-specific configuration. | object | `{"clusterRouterBase":"apps.example.com","route":{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","targetPort":"http-backend","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}}` |
 | openshift.clusterRouterBase | Cluster router base domain used to auto-generate the hostname. | string | `"apps.example.com"` |
-| openshift.route | OpenShift Route configuration. | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` |
-| orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ \"{{inherit}}\" }}"},{"enabled":true,"package":"oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ \"{{inherit}}\" }}"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"dataIndex":{"image":{"digest":"","registry":"","repository":"","tag":""}},"dbCreationJob":{"activeDeadlineSeconds":120,"backoffLimit":2,"image":{"digest":"{{ .Values.postgresql.image.digest }}","registry":"{{ .Values.postgresql.image.registry }}","repository":"{{ .Values.postgresql.image.repository }}","tag":"{{ .Values.postgresql.image.tag }}"},"ttlSecondsAfterFinished":null},"eventing":{"broker":{"name":"","namespace":""}},"externalDB":{"existingSecret":"","host":"","name":"","port":""},"jobService":{"image":{"digest":"","registry":"","repository":"","tag":""}},"monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
+| openshift.route | OpenShift Route configuration. | object | `{"annotations":{},"enabled":true,"host":"{{ .Values.host }}","path":"/","targetPort":"http-backend","tls":{"caCertificate":"","certificate":"","destinationCACertificate":"","enabled":true,"insecureEdgeTerminationPolicy":"Redirect","key":"","termination":"edge"},"wildcardPolicy":"None"}` |
+| orchestrator | Orchestrator (Serverless workflows) configuration. | object | `{"enabled":false,"plugins":[{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-orchestrator-backend"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-orchestrator"},{"enabled":true,"package":"ref://red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator"}],"serverlessLogicOperator":{"enabled":true},"serverlessOperator":{"enabled":true},"sonataflowPlatform":{"dataIndex":{"image":{"digest":"","registry":"","repository":"","tag":""}},"dbCreationJob":{"activeDeadlineSeconds":120,"backoffLimit":2,"image":{"digest":"{{ .Values.postgresql.image.digest }}","registry":"{{ .Values.postgresql.image.registry }}","repository":"{{ .Values.postgresql.image.repository }}","tag":"{{ .Values.postgresql.image.tag }}"},"ttlSecondsAfterFinished":null},"eventing":{"broker":{"name":"","namespace":""}},"externalDB":{"existingSecret":"","host":"","name":"","port":""},"jobService":{"image":{"digest":"","registry":"","repository":"","tag":""}},"monitoring":{"enabled":true},"resources":{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"250m","memory":"64Mi"}}}}` |
 | orchestrator.sonataflowPlatform.dataIndex | SonataFlow Data Index service configuration. | object | `{"image":{"digest":"","registry":"","repository":"","tag":""}}` |
 | orchestrator.sonataflowPlatform.dataIndex.image | Override the Data Index container image. If empty, the operator default is used. | object | `{"digest":"","registry":"","repository":"","tag":""}` |
 | orchestrator.sonataflowPlatform.dbCreationJob | Database creation Job configuration. | object | `{"activeDeadlineSeconds":120,"backoffLimit":2,"image":{"digest":"{{ .Values.postgresql.image.digest }}","registry":"{{ .Values.postgresql.image.registry }}","repository":"{{ .Values.postgresql.image.repository }}","tag":"{{ .Values.postgresql.image.tag }}"},"ttlSecondsAfterFinished":null}` |
@@ -292,7 +298,7 @@ Kubernetes: `>= 1.31.0-0`
 | podDisruptionBudget | Pod Disruption Budget configuration. | object | `{"create":false,"maxUnavailable":1,"minAvailable":""}` |
 | podLabels | Labels to add to the pod. | object | `{}` |
 | podSecurityContext | Pod-level security context. | object | `{}` |
-| postgresql | Built-in PostgreSQL database (bitnami subchart). | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"fedora/postgresql-15","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"serviceBindings":{"enabled":true}}` |
+| postgresql | Built-in PostgreSQL database (bitnami subchart). | object | `{"auth":{"secretKeys":{"adminPasswordKey":"postgres-password","userPasswordKey":"password"}},"enabled":true,"image":{"digest":"","registry":"quay.io","repository":"fedora/postgresql-18","tag":"latest"},"postgresqlDataDir":"/var/lib/pgsql/data/userdata","primary":{"containerSecurityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"enabled":false},"extraEnvVars":[{"name":"POSTGRESQL_ADMIN_PASSWORD","valueFrom":{"secretKeyRef":{"key":"{{- include \"rhdh.postgresql.adminPasswordKey\" . }}","name":"{{- include \"rhdh.postgresql.secretName\" . }}"}}}],"networkPolicy":{"enabled":false},"persistence":{"enabled":true,"mountPath":"/var/lib/pgsql/data","size":"1Gi"},"podSecurityContext":{"enabled":false},"resources":{"limits":{"cpu":"250m","ephemeral-storage":"20Mi","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}},"readReplicas":{"networkPolicy":{"enabled":false}},"serviceBindings":{"enabled":true}}` |
 | preInitContainers | Init containers to run BEFORE the system init containers (e.g. inject auth credentials before install-dynamic-plugins runs). | list | `[]` |
 | readinessProbe | Readiness probe configuration. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/readiness","port":"backend","scheme":"HTTP"},"periodSeconds":10,"successThreshold":2,"timeoutSeconds":4}` |
 | replicaCount | Number of desired pods. | int | `1` |
@@ -308,9 +314,17 @@ Kubernetes: `>= 1.31.0-0`
 | serviceAccount.name | The name of the service account to use. If not set and create is true, a name is generated using the fullname template. | string | `""` |
 | startupProbe | Startup probe configuration. Gives the application time to start before liveness/readiness probes kick in. | object | `{"failureThreshold":3,"httpGet":{"path":"/.backstage/health/v1/liveness","port":"backend","scheme":"HTTP"},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":4}` |
 | strategy | Deployment update strategy. | object | `{}` |
-| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"curl/curl","tag":"8.21.0"},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true}}` |
+| test | Test pod configuration for `helm test`. | object | `{"enabled":true,"image":{"digest":"","pullPolicy":"IfNotPresent","registry":"quay.io","repository":"curl/curl","tag":"8.22.0"},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true}}` |
 | tolerations | Tolerations for pod assignment. | list | `[]` |
 | topologySpreadConstraints | Topology spread constraints for pod scheduling. | list | `[]` |
+| workload | Kubernetes workload controller for Backstage pod. | object | `{"kind":"Deployment","statefulSet":{"annotations":{},"extraVolumeClaimTemplates":[],"persistentVolumeClaimRetentionPolicy":{},"podManagementPolicy":"","serviceName":"","updateStrategy":{}}}` |
+| workload.kind | Workload kind: Deployment (default) or StatefulSet. | string | `"Deployment"` |
+| workload.statefulSet.annotations | Annotations on the StatefulSet resource. | object | `{}` |
+| workload.statefulSet.extraVolumeClaimTemplates | Extra volumeClaimTemplates appended after the chart-managed dynamic-plugins-root claim (when type=statefulSetPVC). | list | `[]` |
+| workload.statefulSet.persistentVolumeClaimRetentionPolicy | Optional PVC retention policy for the StatefulSet. | object | `{}` |
+| workload.statefulSet.podManagementPolicy | Pod management policy for the StatefulSet. | string | `""` |
+| workload.statefulSet.serviceName | service name for the StatefulSet. Defaults to headless when empty. Service ({fullname}-headless) must match an existing service. | string | `""` |
+| workload.statefulSet.updateStrategy | StatefulSet update strategy. | object | `{}` |
 
 ## Opinionated RHDH deployment
 
@@ -349,7 +363,7 @@ quay.io/rhdh-community/rhdh:next
 
 ### "Add, don't replace" pattern
 
-System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Deployment template. User-provided `extra*` values are always **appended** after the system defaults:
+System-required volumes, volume mounts, environment variables, init containers, and sidecar containers are hardcoded in the Backstage pod template (used by both Deployment and StatefulSet). User-provided `extra*` values are always **appended** after the system defaults:
 
 - `extraVolumes` — appended after dynamic-plugins-root, temp, npmcacache, extensions-catalog, etc.
 - `extraVolumeMounts` — appended after dynamic-plugins-root, extensions, temp mounts
@@ -360,6 +374,94 @@ System-required volumes, volume mounts, environment variables, init containers, 
 This means you never need to copy system defaults to add your own entries.
 
 If you need full control, the corresponding `*Override` fields (`envOverride`, `envFromOverride`, `commandOverride`, `argsOverride`) **replace** the system defaults entirely — nothing is auto-injected when an override is set.
+
+### Workload kind (Deployment or StatefulSet)
+
+By default, the chart creates a Kubernetes **Deployment** (`workload.kind: Deployment`). To use a **StatefulSet** instead:
+
+```yaml
+# values.yaml
+workload:
+  kind: StatefulSet
+```
+
+Both kinds render the **same** Backstage pod (containers, volumes, probes, dynamic plugins, Intelligent Assistant, init containers). Only the workload controller changes; the pod definition is shared.
+
+**When to use StatefulSet**
+
+- You need StatefulSet-specific settings (`workload.statefulSet.updateStrategy`, `podManagementPolicy`, `extraVolumeClaimTemplates`, or optional PVC retention policy).
+- You want parity with the [RHDH Operator](https://github.com/redhat-developer/rhdh-operator), which supports `spec.deployment.kind: StatefulSet` ([operator documentation](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/configuration.md#deployment-kind)).
+
+Most installs should keep the default **Deployment** (no app StatefulSet and no headless Service).
+
+**Values that behave the same for both kinds**
+
+`replicaCount`, `autoscaling`, probes, `resources`, `dynamicPlugins`, `extraVolumes`, `podLabels`, `podAnnotations`, and other pod-level settings apply regardless of `workload.kind`. When `autoscaling.enabled` is `true`, the HorizontalPodAutoscaler scales the selected kind (`Deployment` or `StatefulSet`).
+
+**Values that depend on the workload kind**
+
+| Helm value | Deployment | StatefulSet |
+| ---------- | ---------- | ----------- |
+| Update strategy | `strategy` | `workload.statefulSet.updateStrategy` |
+| ReplicaSet revision history | `revisionHistoryLimit` | Not used |
+| Controller annotations (not the pod) | `deploymentAnnotations` | `workload.statefulSet.annotations` |
+| Shared controller annotations | `commonAnnotations` | `commonAnnotations` |
+| PVC claim templates | Not used | `workload.statefulSet.extraVolumeClaimTemplates` |
+| PVC retention policy | Not used | `workload.statefulSet.persistentVolumeClaimRetentionPolicy` |
+
+**StatefulSet-only settings**
+
+When `workload.kind` is `StatefulSet`, the chart also renders a **headless Service** (`{fullname}-headless`, `clusterIP: None`). The StatefulSet `serviceName` points at that Service (stable pod network identity).
+
+The existing **ClusterIP Service** (`templates/service.yaml`) is unchanged — OpenShift Routes, Ingress, and `helm test` still use it for application traffic.
+
+Override `workload.statefulSet.serviceName` only if you create your own governing Service.
+```yaml
+# values.yaml
+workload:
+  kind: StatefulSet
+  statefulSet:
+    serviceName: ""   # default: {fullname}-headless
+    podManagementPolicy: OrderedReady   # or Parallel; omit when empty
+    updateStrategy:
+      type: RollingUpdate
+    extraVolumeClaimTemplates: []
+    persistentVolumeClaimRetentionPolicy: {}
+    annotations: {}
+```
+
+**Stable dynamic-plugins storage**
+
+To give each pod a StatefulSet-owned PVC for `dynamic-plugins-root`:
+
+```yaml
+workload:
+  kind: StatefulSet
+dynamicPlugins:
+  volume:
+    type: statefulSetPVC
+    statefulSetPVC:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+```
+
+The chart injects a `volumeClaimTemplate` named `dynamic-plugins-root` and mounts it on the pod. Kubernetes creates one PVC per pod named `dynamic-plugins-root-{fullname}-{ordinal}` (for example `dynamic-plugins-root-my-rhdh-developer-hub-0`). This requires `workload.kind=StatefulSet`.
+
+To add additional StatefulSet-owned PVCs, use `workload.statefulSet.extraVolumeClaimTemplates`.
+
+**Changing `workload.kind` on an existing release**
+
+For a normal Helm-managed release, changing `workload.kind` and running `helm upgrade` replaces the rendered manifest: Helm removes the old workload kind (Deployment or StatefulSet) and creates the new one. Expect a brief cutover while pods are recreated. If you applied manifests outside Helm (for example GitOps that keeps both objects) or an old controller was left behind, delete the obsolete Deployment or StatefulSet so two controllers do not target the same selector.
+
+**Example install**
+
+```console
+helm upgrade -i my-rhdh redhat-developer/redhat-developer-hub \
+  --set workload.kind=StatefulSet
+```
 
 ### OpenShift Routes
 
@@ -409,19 +511,57 @@ You can also configure additional catalog index images via `catalogIndex.extraIm
 
 For detailed information on configuring the catalog index, including how to override the default image, use a private registry, or add extra catalog index images, see the [Catalog Index Configuration documentation](../../docs/catalog-index-configuration.md).
 
+### NetworkPolicies
+
+This chart deploys a **default-deny** NetworkPolicy for the RHDH backend pod, blocking all ingress and egress traffic that is not explicitly allowed. When the built-in PostgreSQL is enabled (`postgresql.enabled=true`), the database pods also get their own default-deny policy with selective allow rules. When OKP is active, its pods receive a separate default-deny ingress and egress policy with rules allowing only the required HTTP ingress.
+
+The following traffic is allowed out of the box:
+
+| Direction | Port | Destination / Source | Purpose |
+|-----------|------|----------------------|---------|
+| Egress | 53, 5353 (UDP/TCP) | Any | DNS resolution |
+| Egress | 443 (TCP) | Any | HTTPS (Git forges, auth providers, external APIs) |
+| Egress | 5432 (TCP) | Built-in PostgreSQL pods (scoped) or any (external DB) | Database access |
+| Egress | 6379 (TCP) | Any | Redis (BYO — no pod/namespace selector) |
+| Egress | 80 (TCP) | Any destination | LCORE access to an HTTP OKP Ingress |
+| Egress | 8080 (TCP) | OKP pods | LCORE access to the internal OKP Service fallback |
+| Ingress | 7007 (TCP) | OpenShift router namespace or any namespace (non-OCP) | User traffic via Route / Ingress |
+| Ingress | 8080 (TCP) | RHDH pods and the OpenShift router namespace or any namespace (non-OCP) | OKP queries and product-document citations via Route / Ingress |
+| Ingress | 9464 (TCP) | `openshift-monitoring`, `openshift-user-workload-monitoring`, `gmp-system`, `gke-gmp-system`, `monitoring` | Prometheus metrics scraping |
+
+OKP initiates no outbound connections: its HTTP server and Solr process run in the same pod and serve the documentation embedded in the image. Its default-deny policy therefore blocks all new egress connections. NetworkPolicy is stateful, so response traffic for allowed ingress connections remains permitted.
+
+RHDH already permits HTTPS egress on port 443. When OKP uses HTTP instead, the chart permits RHDH egress on port 80 for a Kubernetes Ingress or restricts port 8080 egress to OKP pods for the internal Service fallback. No additional RHDH egress policy is created when `OKP_SERVICE_URL` uses HTTPS.
+
+**Redis egress is intentionally unscoped.** RHDH does not deploy Redis; users bring their own instance, which may live in the same namespace, a different namespace, or an external managed service. The rule therefore allows egress on port 6379 to any destination.
+
+**Bitnami subchart NetworkPolicies are disabled** (`postgresql.primary.networkPolicy.enabled=false`, `postgresql.readReplicas.networkPolicy.enabled=false`) because this chart provides its own tighter policies for the built-in database pods.
+
+**Helm test NetworkPolicies** (`allow-test-connection` and `allow-test-connection-ingress`) are Helm test hooks: they are created just before `helm test` runs and cleaned up automatically on success.
+
+**Adding your own NetworkPolicies.** Kubernetes evaluates NetworkPolicies additively — if any policy allows a connection, the connection is permitted. You **cannot** tighten an existing allow rule by adding another NetworkPolicy; you can only broaden access. To restrict traffic further, you would need to modify or remove the chart's policies via values overrides or post-render patches.
+
+For more information on user workload monitoring on OpenShift, see [Configuring user workload monitoring](https://docs.redhat.com/en/documentation/monitoring_stack_for_red_hat_openshift/4.22/html/configuring_user_workload_monitoring/preparing-to-configure-the-monitoring-stack-uwm).
+
 ### Intelligent Assistant
 
 Use `intelligentAssistant.enabled` to enable or disable the built-in Intelligent Assistant feature.
 
-When enabled, the chart adds the default Intelligent Assistant dynamic plugins (`ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant` and `ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend`), a RAG bootstrap init container, a Lightspeed Core sidecar listening on port `8080`, chart-generated ConfigMaps, and separate runtime and RAG data volumes. Override `intelligentAssistant.plugins` for disconnected environments. Configure an LLM provider with `intelligentAssistant.existingSecret`; the chart does not create that Secret. Plugin app-config uses the `intelligent-assistant:` namespace (not `lightspeed:`).
+When enabled, the chart adds the default Intelligent Assistant dynamic plugins (`ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant` and `ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend`), a Lightspeed Core sidecar listening on port `8080`, chart-generated ConfigMaps, and a writable runtime volume. Override `intelligentAssistant.plugins` for disconnected environments. Plugin app-config uses the `intelligent-assistant:` namespace (not `lightspeed:`).
 
-This is a breaking change from chart 1.x: rename `lightspeed:` to `intelligentAssistant:` in your values. Chart-generated ConfigMaps are named `{fullname}-ia-{stack,server,profile}` instead of `{fullname}-lightspeed-*`, so Helm replaces those objects on upgrade. The `ia` infix is used because Kubernetes names are limited to 63 characters.
+The bundled `lightspeed-stack.yaml` does not enable an LLM inference provider. Create a provider-enabled stack in a ConfigMap and reference it with `intelligentAssistant.config.stack.existingConfigMap`. Supply that provider's credentials and settings with `intelligentAssistant.existingSecret`; the chart does not create the Secret.
 
-Use `intelligentAssistant.runtimeVolume` to change the writable `/tmp` runtime storage between `emptyDir` and an existing PVC reference. The chart mounts that volume at `/tmp` so both generated temp files and `/tmp/data` remain writable. The `/rag-content` volume stays chart-managed and `emptyDir`-backed because the RAG assets are repopulated by the init container on each Pod start.
+This is a breaking change from chart 1.x: rename `lightspeed:` to `intelligentAssistant:` in your values. Chart-generated ConfigMaps are named `{fullname}-ia-{stack,profile}` instead of `{fullname}-lightspeed-*`, so Helm replaces those objects on upgrade. The `ia` infix is used because Kubernetes names are limited to 63 characters.
+
+Chart 2.1.0 removes `intelligentAssistant.config.server` and the separate Llama Stack `config.yaml`. Remove the `server` entry from existing values. Move custom Llama Stack settings into the `lightspeed-stack.yaml` supplied through `intelligentAssistant.config.stack.existingConfigMap`.
+
+Use `intelligentAssistant.runtimeVolume` to change the writable `/tmp` runtime storage between `emptyDir` and an existing PVC reference. The chart mounts that volume at `/tmp` so both generated temporary files and `/tmp/data` remain writable.
 
 When using the built-in Intelligent Assistant feature, do not also keep those plugin packages in `dynamicPlugins.plugins`. Existing installations that previously configured Lightspeed or Intelligent Assistant there should remove those entries if the built-in defaults are sufficient, or move their custom package definitions to `intelligentAssistant.plugins`; otherwise the rendered `dynamic-plugins.yaml` will contain duplicate plugin entries.
 
-The Lightspeed Core sidecar loads `intelligentAssistant.existingSecret` as environment variables. If you update that Secret outside of Helm, Kubernetes does not guarantee that the Backstage Pod restarts automatically. Use a no-op `helm upgrade` or manually restart the Backstage deployment after changing the secret data.
+The Lightspeed Core sidecar loads `intelligentAssistant.existingSecret` as environment variables. If you update that Secret outside of Helm, Kubernetes does not guarantee that the Backstage Pod restarts automatically. Use a no-op `helm upgrade` or manually restart the Backstage workload (Deployment or StatefulSet) after changing the secret data.
+
+RHDH documentation retrieval is disabled by default in Intelligent Assistant. To enable it, set `intelligentAssistant.okp.enabled=true`. This deploys the OKP workload and uses the OKP-enabled Lightspeed Stack configuration. The OKP container image is large, so enabling it can significantly increase the initial installation time while the image is downloaded. On vanilla Kubernetes, you must also configure the OKP Ingress and Red Hat registry credentials. See [Intelligent Assistant and OKP integration](../../docs/intelligent-assistant.md) for platform-specific configuration.
 
 ### Vanilla Kubernetes compatibility mode
 

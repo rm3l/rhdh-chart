@@ -14,13 +14,16 @@ global:
 # ── Chart metadata overrides ────────────────────────────────
 
 # -- Override the chart name used in resource naming.
-nameOverride: ""
+nameOverride: developer-hub
 # -- Override the full resource name.
 fullnameOverride: ""
 # -- Labels applied to ALL chart resources.
 commonLabels: {}
 # -- Annotations applied to ALL chart resources.
 commonAnnotations: {}
+# -- Array of extra objects to deploy with the release (rendered through `tpl`).
+# Each element is a complete Kubernetes manifest; Helm template expressions are supported.
+extraDeploy: []
 
 # ── Container image ─────────────────────────────────────────
 
@@ -124,7 +127,7 @@ dynamicPlugins:
   # -- Volume configuration for the dynamic plugins root directory.
   volume:
     # -- Volume type: "ephemeral" (auto-provisioned PVC per pod), "emptyDir" (scratch space, lost on pod restart),
-    # or "pvc" (pre-existing PersistentVolumeClaim).
+    # "pvc" (pre-existing PersistentVolumeClaim), or "statefulSetPVC" (StatefulSet volumeClaimTemplate; requires workload.kind=StatefulSet).
     type: "ephemeral"
     # -- Ephemeral volume configuration. Used when type is "ephemeral".
     # The chart builds the full ephemeral.volumeClaimTemplate.spec from these fields.
@@ -144,6 +147,18 @@ dynamicPlugins:
     # -- Raw Kubernetes persistentVolumeClaim volume spec. Used when type is "pvc".
     pvc:
       claimName: ""
+    # -- StatefulSet-owned PVC volume spec. Used when type is "statefulSetPVC".
+    statefulSetPVC:
+      # -- StorageClass. When empty, uses global.defaultStorageClass or the cluster default.
+      storageClassName: ""
+      # -- Access modes for the StatefulSet-owned PVC.
+      accessModes:
+        - "ReadWriteOnce"
+      # -- Resource requests for the StatefulSet-owned PVC.
+      resources:
+        requests:
+          storage: "5Gi"
+
   # -- Configuration for the install-dynamic-plugins init container.
   initContainer:
     # -- Override the default command. Leave empty to use the default (./install-dynamic-plugins.sh /dynamic-plugins-root).
@@ -204,6 +219,31 @@ revisionHistoryLimit: 10
 # -- Deployment update strategy.
 strategy: {}
 
+# -- Kubernetes workload controller for Backstage pod.
+workload:
+  # -- Workload kind: Deployment (default) or StatefulSet.
+  kind: "Deployment"
+
+  statefulSet:
+    # -- service name for the StatefulSet. Defaults to headless when empty.
+    # Service ({fullname}-headless) must match an existing service.
+    serviceName: ""
+
+    # -- Pod management policy for the StatefulSet.
+    podManagementPolicy: ""
+
+    # -- StatefulSet update strategy.
+    updateStrategy: {}
+
+    # -- Optional PVC retention policy for the StatefulSet.
+    persistentVolumeClaimRetentionPolicy: {}
+
+    # -- Extra volumeClaimTemplates appended after the chart-managed dynamic-plugins-root claim (when type=statefulSetPVC).
+    extraVolumeClaimTemplates: []
+
+    # -- Annotations on the StatefulSet resource.
+    annotations: {}
+
 # -- ServiceAccount configuration.
 serviceAccount:
   create: false
@@ -222,7 +262,7 @@ podLabels: {}
 # -- Pod-level security context.
 podSecurityContext: {}
 
-# -- Security context for the main RHDH container (not the Lightspeed sidecar or init containers).
+# -- Security context for the main RHDH container (not the Lightspeed Core sidecar or init containers).
 containerSecurityContext:
   readOnlyRootFilesystem: true
   allowPrivilegeEscalation: false
@@ -286,7 +326,7 @@ extraVolumes: []
 extraVolumeMounts: []
 
 # -- Additional sidecar containers. These are ADDED to system containers
-# (e.g. Lightspeed sidecar), never replacing them.
+# (e.g. Lightspeed Core sidecar), never replacing them.
 extraContainers: []
 
 # -- Init containers to run BEFORE the system init containers
@@ -294,7 +334,7 @@ extraContainers: []
 preInitContainers: []
 
 # -- Additional init containers. These are ADDED after system init containers
-# (install-dynamic-plugins, Lightspeed RAG init), never replacing them.
+# (install-dynamic-plugins), never replacing them.
 extraInitContainers: []
 
 # -- Node labels for pod assignment.
@@ -410,6 +450,7 @@ openshift:
     host: "{{ .Values.host }}"
     path: "/"
     wildcardPolicy: "None"
+    targetPort: "http-backend"
     tls:
       enabled: true
       termination: "edge"
@@ -429,7 +470,7 @@ postgresql:
     enabled: true
   image:
     registry: "quay.io"
-    repository: "fedora/postgresql-15"
+    repository: "fedora/postgresql-18"
     tag: "latest"
     digest: ""
   auth:
@@ -437,6 +478,11 @@ postgresql:
       adminPasswordKey: "postgres-password"
       userPasswordKey: "password"
   primary:
+    # The bitnami subchart ships its own NP, but it defaults to allow-all egress
+    # and unrestricted ingress on 5432. We disable it and provide tighter
+    # replacements in templates/network-policies.yaml.
+    networkPolicy:
+      enabled: false
     podSecurityContext:
       enabled: false
     containerSecurityContext:
@@ -463,6 +509,11 @@ postgresql:
           secretKeyRef:
             key: '{{- include "rhdh.postgresql.adminPasswordKey" . }}'
             name: '{{- include "rhdh.postgresql.secretName" . }}'
+  readReplicas:
+    # Same rationale as primary.networkPolicy above; our own read-replica NPs
+    # in templates/network-policies.yaml are tighter.
+    networkPolicy:
+      enabled: false
 
 # -- External database connection. Used when postgresql.enabled is false.
 # See docs/external-db.md for TLS setup and privilege requirements.
@@ -496,14 +547,14 @@ metrics:
 
 # ── Built-in features ──────────────────────────────────────
 
-# -- Built-in Lightspeed AI feature configuration.
-lightspeed:
+# -- Built-in Intelligent Assistant feature configuration.
+intelligentAssistant:
   enabled: true
-  # -- Lightspeed dynamic plugin packages.
+  # -- Intelligent Assistant dynamic plugin packages.
   plugins:
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant'
       enabled: true
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend'
       enabled: true
   # -- Configuration files mounted into the sidecar.
   # By default, the chart creates ConfigMaps from bundled source files.
@@ -518,15 +569,6 @@ lightspeed:
         name: ""
         # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (lightspeed-stack.yaml) if not set.
         key: ""
-    # -- Llama Stack server configuration (config.yaml).
-    server:
-      # -- Use an existing ConfigMap instead of the bundled default.
-      # @default -- Created from bundled config.yaml
-      existingConfigMap:
-        # -- Name of the existing ConfigMap.
-        name: ""
-        # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (config.yaml) if not set.
-        key: ""
     # -- Python profile with prompt templates (rhdh-profile.py).
     profile:
       # -- Use an existing ConfigMap instead of the bundled default.
@@ -536,16 +578,16 @@ lightspeed:
         name: ""
         # -- Key within the ConfigMap that holds the file content. Defaults to the bundled filename (rhdh-profile.py) if not set.
         key: ""
-  # -- Name of an existing Secret to inject via envFrom into the lightspeed-core container.
-  # If empty, no secret is mounted.
-  # Expected keys (all optional — only set the ones for the providers you use):
-  #   ENABLE_VLLM, VLLM_URL, VLLM_API_KEY, VLLM_MAX_TOKENS, VLLM_TLS_VERIFY,
-  #   ENABLE_OPENAI, OPENAI_API_KEY,
-  #   ENABLE_VERTEX_AI, VERTEX_AI_PROJECT, VERTEX_AI_LOCATION, GOOGLE_APPLICATION_CREDENTIALS,
-  #   ENABLE_OLLAMA, OLLAMA_URL,
-  #   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME,
-  #   LLAMA_STACK_LOGGING
-  # See files/lightspeed/secret.example.yaml for a reference template.
+  # -- Name of an existing Secret that supplies credentials and settings to the lightspeed-core container.
+  # Configure the provider itself in lightspeed-stack.yaml. If empty, no Secret is loaded.
+  # Expected keys (all optional; include only keys used by the configured provider):
+  #   VLLM_URL, VLLM_API_KEY, VLLM_MAX_TOKENS, VLLM_TLS_VERIFY,
+  #   OPENAI_API_KEY,
+  #   VERTEX_AI_PROJECT, VERTEX_AI_LOCATION, GOOGLE_APPLICATION_CREDENTIALS,
+  #   ENABLE_VALIDATION, VALIDATION_PROVIDER, VALIDATION_MODEL_NAME
+  # Set ENABLE_VALIDATION to question_validity to enable validation.
+  # GOOGLE_APPLICATION_CREDENTIALS must be a path to a credentials file mounted in the sidecar.
+  # See files/intelligent-assistant/secret.example.yaml for a reference template.
   existingSecret: ""
   # -- Writable scratch volume for the sidecar (/tmp).
   runtimeVolume:
@@ -553,49 +595,17 @@ lightspeed:
     type: "emptyDir"
     emptyDir: {}
     persistentVolumeClaim: {}
-  # -- RAG data bootstrap init container.
-  ragInit:
-    image:
-      registry: "quay.io"
-      repository: "redhat-ai-dev/rag-content"
-      tag: "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
-      digest: ""
-    imagePullPolicy: "IfNotPresent"
-    # -- Override the default command for the RAG init container.
-    commandOverride: []
-    # -- Override the default arguments for the RAG init container.
-    argsOverride: []
-    # -- Extra arguments appended after the default arguments. Ignored when argsOverride is set.
-    extraArgs: []
-    extraEnv: []
-    extraVolumeMounts: []
-    resources:
-      requests:
-        cpu: 50m
-        memory: 150Mi
-      limits:
-        cpu: 100m
-        memory: 500Mi
-    securityContext:
-      readOnlyRootFilesystem: true
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
-      runAsNonRoot: true
-      seccompProfile:
-        type: "RuntimeDefault"
   # -- Lightspeed Core sidecar container.
   core:
     image:
       registry: "quay.io"
       repository: "lightspeed-core/lightspeed-stack"
-      tag: "0.6.2"
+      tag: "0.7.0rc3"
       digest: ""
     imagePullPolicy: "IfNotPresent"
     # -- Override the container's default command. Leave empty to use the image entrypoint.
     commandOverride: []
-    # -- Override the container's default args. Leave empty to use the image defaults.
+    # -- Override the container's default args. Leave empty to use the chart defaults.
     argsOverride: []
     # -- Extra arguments appended after the default arguments. Ignored when argsOverride is set.
     extraArgs: []
@@ -615,6 +625,81 @@ lightspeed:
         drop:
           - ALL
       runAsNonRoot: true
+      seccompProfile:
+        type: "RuntimeDefault"
+  # -- OKP (Offline Knowledge Portal) configuration.
+  # Deploys an OKP instance for RHDH documentation retrieval when explicitly enabled.
+  # The image is large and can significantly increase initial installation time.
+  okp:
+    # -- Enable OKP-backed RHDH documentation retrieval. Disabled by default on all platforms.
+    enabled: false
+    image:
+      registry: "registry.redhat.io"
+      repository: "offline-knowledge-portal/rhokp-rhel9"
+      tag: "1.2.12-1788274041"
+      digest: ""
+      pullPolicy: "IfNotPresent"
+    replicaCount: 1
+    solr:
+      memory: "1g"
+      hostBind: "0.0.0.0"
+    httpd:
+      serverName: "localhost"
+      compressed: "true"
+      encrypt: "false"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+    service:
+      type: ClusterIP
+    # -- Image pull secrets for the OKP container image.
+    # Required on vanilla Kubernetes to authenticate with registry.redhat.io.
+    # Not needed on OpenShift where the cluster-wide pull secret covers Red Hat registries.
+    # @default -- `[]`
+    imagePullSecrets: []
+    # imagePullSecrets:
+    #   - "my-rh-registry-secret"
+    # -- Pod scheduling: affinity rules for the OKP pod.
+    affinity: {}
+    # -- Pod scheduling: node selector for the OKP pod.
+    nodeSelector: {}
+    # -- Pod scheduling: tolerations for the OKP pod.
+    tolerations: []
+    # -- Pod scheduling: topology spread constraints for the OKP pod.
+    topologySpreadConstraints: []
+    # -- Readiness probe configuration for the OKP container.
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    # -- Liveness probe configuration for the OKP container.
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    route:
+      enabled: true
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+    ingress:
+      enabled: true
+      host: ""
+      className: ""
+      annotations: {}
+      tls:
+        enabled: false
+        secretName: ""
+    # -- OKP container security context. readOnlyRootFilesystem is not set because
+    # Solr (Lucene) writes a lock file into its pre-built index directory at runtime.
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
       seccompProfile:
         type: "RuntimeDefault"
 
@@ -677,13 +762,13 @@ orchestrator:
         tag: ""
         digest: ""
   plugins:
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-backend:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-orchestrator-backend'
       enabled: true
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-orchestrator-form-widgets'
       enabled: true
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-orchestrator:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-orchestrator'
       enabled: true
-    - package: 'oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator:{{ "{{inherit}}" }}'
+    - package: 'ref://red-hat-developer-hub-backstage-plugin-scaffolder-backend-module-orchestrator'
       enabled: true
 
 # ── Testing ─────────────────────────────────────────────────
@@ -694,7 +779,7 @@ test:
   image:
     registry: "quay.io"
     repository: "curl/curl"
-    tag: "8.21.0"
+    tag: "8.22.0"
     digest: ""
     pullPolicy: "IfNotPresent"
   securityContext:

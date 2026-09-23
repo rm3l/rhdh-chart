@@ -11,8 +11,13 @@ externalDatabase:
   existingSecretRef:
     name: "ext-db-password"
     key: "password"
-lightspeed:
+intelligentAssistant:
   plugins: []
+  okp:
+    route:
+      enabled: false
+    ingress:
+      enabled: false
 orchestrator:
   enabled: true
   plugins: []

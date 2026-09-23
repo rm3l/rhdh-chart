@@ -246,7 +246,7 @@
                     "type": "RuntimeDefault"
                 }
             },
-            "title": "Security context for the main RHDH container (not the Lightspeed sidecar or init containers).",
+            "title": "Security context for the main RHDH container (not the Lightspeed Core sidecar or init containers).",
             "type": "object"
         },
         "deploymentAnnotations": {
@@ -411,12 +411,69 @@
                             "title": "Raw Kubernetes persistentVolumeClaim volume spec. Used when type is pvc.",
                             "type": "object"
                         },
+                        "statefulSetPVC": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "accessModes": {
+                                    "default": [
+                                        "ReadWriteOnce"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "title": "Access modes for the StatefulSet PVC.",
+                                    "type": "array"
+                                },
+                                "resources": {
+                                    "description": "VolumeResourceRequirements describes the storage resource requirements for a volume.",
+                                    "properties": {
+                                        "limits": {
+                                            "additionalProperties": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "number"
+                                                    }
+                                                ]
+                                            },
+                                            "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                                            "type": "object"
+                                        },
+                                        "requests": {
+                                            "additionalProperties": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "number"
+                                                    }
+                                                ]
+                                            },
+                                            "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "storageClassName": {
+                                    "default": "",
+                                    "title": "StorageClass for the StatefulSet PVC. When empty, uses global.defaultStorageClass or the cluster default.",
+                                    "type": "string"
+                                }
+                            },
+                            "title": "StatefulSet volumeClaimTemplate settings for dynamic-plugins-root. Used when type is statefulSetPVC. Requires workload.kind=StatefulSet.",
+                            "type": "object"
+                        },
                         "type": {
                             "default": "ephemeral",
                             "enum": [
                                 "ephemeral",
                                 "emptyDir",
-                                "pvc"
+                                "pvc",
+                                "statefulSetPVC"
                             ],
                             "title": "Volume type.",
                             "type": "string"
@@ -513,7 +570,22 @@
         },
         "extraContainers": {
             "default": [],
-            "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed sidecar), never replacing them.",
+            "title": "Additional sidecar containers. These are ADDED to system containers (e.g. Lightspeed Core sidecar), never replacing them.",
+            "type": "array"
+        },
+        "extraDeploy": {
+            "default": [],
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "object"
+                    },
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "title": "Array of extra objects to deploy with the release (rendered through tpl).",
             "type": "array"
         },
         "extraEnv": {
@@ -528,7 +600,7 @@
         },
         "extraInitContainers": {
             "default": [],
-            "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins, Lightspeed RAG init), never replacing them.",
+            "title": "Additional init containers. These are ADDED after system init containers (install-dynamic-plugins), never replacing them.",
             "type": "array"
         },
         "extraVolumeMounts": {
@@ -720,17 +792,11 @@
             "title": "Lifecycle hooks for the main RHDH container.",
             "type": "object"
         },
-        "lightspeed": {
+        "intelligentAssistant": {
             "additionalProperties": false,
             "default": {
                 "config": {
                     "profile": {
-                        "existingConfigMap": {
-                            "key": "",
-                            "name": ""
-                        }
-                    },
-                    "server": {
                         "existingConfigMap": {
                             "key": "",
                             "name": ""
@@ -753,7 +819,7 @@
                         "digest": "",
                         "registry": "quay.io",
                         "repository": "lightspeed-core/lightspeed-stack",
-                        "tag": "0.6.2"
+                        "tag": "0.7.0rc3"
                     },
                     "imagePullPolicy": "IfNotPresent",
                     "resources": {
@@ -782,37 +848,57 @@
                 },
                 "enabled": true,
                 "existingSecret": "",
-                "plugins": [
-                    {
-                        "enabled": true,
-                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
+                "okp": {
+                    "affinity": {},
+                    "enabled": false,
+                    "httpd": {
+                        "compressed": "true",
+                        "encrypt": "false",
+                        "serverName": "localhost"
                     },
-                    {
-                        "enabled": true,
-                        "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
-                    }
-                ],
-                "ragInit": {
-                    "argsOverride": [],
-                    "commandOverride": [],
-                    "extraArgs": [],
-                    "extraEnv": [],
-                    "extraVolumeMounts": [],
                     "image": {
                         "digest": "",
-                        "registry": "quay.io",
-                        "repository": "redhat-ai-dev/rag-content",
-                        "tag": "release-1.10-lls-0.5.0-8c231a3b5177f12fff9db042dfa4091d8f2f26b3"
+                        "pullPolicy": "IfNotPresent",
+                        "registry": "registry.redhat.io",
+                        "repository": "offline-knowledge-portal/rhokp-rhel9",
+                        "tag": "1.2.12-1788274041"
                     },
-                    "imagePullPolicy": "IfNotPresent",
+                    "imagePullSecrets": [],
+                    "ingress": {
+                        "annotations": {},
+                        "className": "",
+                        "enabled": true,
+                        "host": "",
+                        "tls": {
+                            "enabled": false,
+                            "secretName": ""
+                        }
+                    },
+                    "livenessProbe": {
+                        "initialDelaySeconds": 30,
+                        "periodSeconds": 30
+                    },
+                    "nodeSelector": {},
+                    "readinessProbe": {
+                        "initialDelaySeconds": 10,
+                        "periodSeconds": 10
+                    },
+                    "replicaCount": 1,
                     "resources": {
                         "limits": {
-                            "cpu": "100m",
-                            "memory": "500Mi"
+                            "cpu": "2",
+                            "memory": "4Gi"
                         },
                         "requests": {
-                            "cpu": "50m",
-                            "memory": "150Mi"
+                            "cpu": "200m",
+                            "memory": "2Gi"
+                        }
+                    },
+                    "route": {
+                        "enabled": true,
+                        "tls": {
+                            "insecureEdgeTerminationPolicy": "Redirect",
+                            "termination": "edge"
                         }
                     },
                     "securityContext": {
@@ -822,13 +908,31 @@
                                 "ALL"
                             ]
                         },
-                        "readOnlyRootFilesystem": true,
                         "runAsNonRoot": true,
                         "seccompProfile": {
                             "type": "RuntimeDefault"
                         }
-                    }
+                    },
+                    "service": {
+                        "type": "ClusterIP"
+                    },
+                    "solr": {
+                        "hostBind": "0.0.0.0",
+                        "memory": "1g"
+                    },
+                    "tolerations": [],
+                    "topologySpreadConstraints": []
                 },
+                "plugins": [
+                    {
+                        "enabled": true,
+                        "package": "ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant"
+                    },
+                    {
+                        "enabled": true,
+                        "package": "ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend"
+                    }
+                ],
                 "runtimeVolume": {
                     "emptyDir": {},
                     "persistentVolumeClaim": {},
@@ -861,30 +965,6 @@
                                 }
                             },
                             "title": "Python profile with prompt templates (rhdh-profile.py).",
-                            "type": "object"
-                        },
-                        "server": {
-                            "additionalProperties": false,
-                            "properties": {
-                                "existingConfigMap": {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "key": {
-                                            "default": "",
-                                            "title": "Key within the ConfigMap. Defaults to the bundled filename if not set.",
-                                            "type": "string"
-                                        },
-                                        "name": {
-                                            "default": "",
-                                            "title": "Name of the existing ConfigMap.",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "title": "Use an existing ConfigMap instead of the bundled default.",
-                                    "type": "object"
-                                }
-                            },
-                            "title": "Llama Stack server configuration (config.yaml).",
                             "type": "object"
                         },
                         "stack": {
@@ -923,7 +1003,7 @@
                             "items": {
                                 "type": "string"
                             },
-                            "title": "Override the container's default args.",
+                            "title": "Override the chart's default container args.",
                             "type": "array"
                         },
                         "commandOverride": {
@@ -1204,7 +1284,7 @@
                 },
                 "enabled": {
                     "default": true,
-                    "title": "Enable or disable the built-in Lightspeed feature.",
+                    "title": "Enable or disable the built-in Intelligent Assistant feature.",
                     "type": "boolean"
                 },
                 "existingSecret": {
@@ -1212,87 +1292,35 @@
                     "title": "Name of an existing Secret to inject via envFrom into the lightspeed-core container.",
                     "type": "string"
                 },
-                "plugins": {
-                    "default": [
-                        {
-                            "enabled": true,
-                            "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed:{{ \"{{inherit}}\" }}"
-                        },
-                        {
-                            "enabled": true,
-                            "package": "oci://registry.access.redhat.com/rhdh/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ \"{{inherit}}\" }}"
-                        }
-                    ],
-                    "items": {
-                        "properties": {
-                            "enabled": {
-                                "default": true,
-                                "title": "Enable the plugin.",
-                                "type": "boolean"
-                            },
-                            "integrity": {
-                                "title": "Integrity checksum of the package.",
-                                "type": "string"
-                            },
-                            "package": {
-                                "title": "Package specification of the dynamic plugin to install.",
-                                "type": "string"
-                            },
-                            "pluginConfig": {
-                                "title": "Optional plugin-specific app-config YAML fragment.",
-                                "type": "object"
-                            }
-                        },
-                        "required": [
-                            "package"
-                        ],
-                        "type": "object"
-                    },
-                    "title": "Lightspeed plugins and their configuration. Override package references for disconnected environments.",
-                    "type": "array"
-                },
-                "ragInit": {
+                "okp": {
                     "additionalProperties": false,
                     "properties": {
-                        "argsOverride": {
-                            "default": [],
-                            "items": {
-                                "type": "string"
-                            },
-                            "title": "Override the default arguments.",
-                            "type": "array"
+                        "affinity": {
+                            "default": {},
+                            "type": "object"
                         },
-                        "commandOverride": {
-                            "default": [],
-                            "items": {
-                                "type": "string"
-                            },
-                            "title": "Override the default command.",
-                            "type": "array"
+                        "enabled": {
+                            "default": false,
+                            "title": "Enable OKP-backed RHDH documentation retrieval. The large OKP image can significantly increase initial installation time.",
+                            "type": "boolean"
                         },
-                        "extraArgs": {
-                            "default": [],
-                            "items": {
-                                "type": "string"
+                        "httpd": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "compressed": {
+                                    "default": "true",
+                                    "type": "string"
+                                },
+                                "encrypt": {
+                                    "default": "false",
+                                    "type": "string"
+                                },
+                                "serverName": {
+                                    "default": "localhost",
+                                    "type": "string"
+                                }
                             },
-                            "title": "Extra arguments appended after the default arguments. Ignored when argsOverride is set.",
-                            "type": "array"
-                        },
-                        "extraEnv": {
-                            "default": [],
-                            "items": {
-                                "type": "object"
-                            },
-                            "title": "Additional environment variables.",
-                            "type": "array"
-                        },
-                        "extraVolumeMounts": {
-                            "default": [],
-                            "items": {
-                                "type": "object"
-                            },
-                            "title": "Additional volume mounts.",
-                            "type": "array"
+                            "type": "object"
                         },
                         "image": {
                             "additionalProperties": false,
@@ -1301,29 +1329,119 @@
                                     "default": "",
                                     "type": "string"
                                 },
+                                "pullPolicy": {
+                                    "default": "IfNotPresent",
+                                    "enum": [
+                                        "Always",
+                                        "IfNotPresent",
+                                        "Never"
+                                    ],
+                                    "type": "string"
+                                },
                                 "registry": {
-                                    "default": "quay.io",
+                                    "default": "registry.redhat.io",
                                     "type": "string"
                                 },
                                 "repository": {
-                                    "default": "redhat-ai-dev/rag-content",
+                                    "default": "offline-knowledge-portal/rhokp-rhel9",
                                     "type": "string"
                                 },
                                 "tag": {
+                                    "default": "1.2.12-1788274041",
                                     "type": "string"
                                 }
                             },
-                            "title": "Container image for the RAG init container.",
                             "type": "object"
                         },
-                        "imagePullPolicy": {
-                            "default": "IfNotPresent",
-                            "enum": [
-                                "Always",
-                                "IfNotPresent",
-                                "Never"
-                            ],
-                            "type": "string"
+                        "imagePullSecrets": {
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "ingress": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "annotations": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "default": {},
+                                    "type": "object"
+                                },
+                                "className": {
+                                    "default": "",
+                                    "type": "string"
+                                },
+                                "enabled": {
+                                    "default": true,
+                                    "type": "boolean"
+                                },
+                                "host": {
+                                    "default": "",
+                                    "type": "string"
+                                },
+                                "tls": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "enabled": {
+                                            "default": false,
+                                            "type": "boolean"
+                                        },
+                                        "secretName": {
+                                            "default": "",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "livenessProbe": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "initialDelaySeconds": {
+                                    "default": 30,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                "periodSeconds": {
+                                    "default": 30,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "nodeSelector": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "default": {},
+                            "type": "object"
+                        },
+                        "readinessProbe": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "initialDelaySeconds": {
+                                    "default": 10,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                },
+                                "periodSeconds": {
+                                    "default": 10,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "replicaCount": {
+                            "default": 1,
+                            "minimum": 0,
+                            "type": "integer"
                         },
                         "resources": {
                             "description": "ResourceRequirements describes the compute resource requirements.",
@@ -1379,6 +1497,40 @@
                                         ]
                                     },
                                     "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "route": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "default": true,
+                                    "type": "boolean"
+                                },
+                                "tls": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "insecureEdgeTerminationPolicy": {
+                                            "default": "Redirect",
+                                            "enum": [
+                                                "Allow",
+                                                "Redirect",
+                                                "None"
+                                            ],
+                                            "type": "string"
+                                        },
+                                        "termination": {
+                                            "default": "edge",
+                                            "enum": [
+                                                "edge",
+                                                "reencrypt",
+                                                "passthrough"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             },
@@ -1533,10 +1685,81 @@
                                 }
                             },
                             "type": "object"
+                        },
+                        "service": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "type": {
+                                    "default": "ClusterIP",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "solr": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "hostBind": {
+                                    "default": "0.0.0.0",
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "default": "1g",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "tolerations": {
+                            "default": [],
+                            "type": "array"
+                        },
+                        "topologySpreadConstraints": {
+                            "default": [],
+                            "type": "array"
                         }
                     },
-                    "title": "RAG data bootstrap init container.",
+                    "title": "OKP (Offline Knowledge Portal) configuration. Deploys an OKP instance for RHDH documentation retrieval when explicitly enabled.",
                     "type": "object"
+                },
+                "plugins": {
+                    "default": [
+                        {
+                            "enabled": true,
+                            "package": "ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant"
+                        },
+                        {
+                            "enabled": true,
+                            "package": "ref://red-hat-developer-hub-backstage-plugin-intelligent-assistant-backend"
+                        }
+                    ],
+                    "items": {
+                        "properties": {
+                            "enabled": {
+                                "default": true,
+                                "title": "Enable the plugin.",
+                                "type": "boolean"
+                            },
+                            "integrity": {
+                                "title": "Integrity checksum of the package.",
+                                "type": "string"
+                            },
+                            "package": {
+                                "title": "Package specification of the dynamic plugin to install.",
+                                "type": "string"
+                            },
+                            "pluginConfig": {
+                                "title": "Optional plugin-specific app-config YAML fragment.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "package"
+                        ],
+                        "type": "object"
+                    },
+                    "title": "Intelligent Assistant plugins and their configuration. Override package references for disconnected environments.",
+                    "type": "array"
                 },
                 "runtimeVolume": {
                     "additionalProperties": false,
@@ -1593,7 +1816,7 @@
                     "type": "object"
                 }
             },
-            "title": "Built-in Lightspeed AI feature configuration.",
+            "title": "Built-in Intelligent Assistant feature configuration.",
             "type": "object"
         },
         "livenessProbe": {
@@ -1656,7 +1879,7 @@
             "type": "object"
         },
         "nameOverride": {
-            "default": "",
+            "default": "developer-hub",
             "title": "Override the chart name used in resource naming.",
             "type": "string"
         },
@@ -1694,6 +1917,11 @@
                         "path": {
                             "default": "/",
                             "title": "Path that the router watches for, to route traffic for to the service.",
+                            "type": "string"
+                        },
+                        "targetPort": {
+                            "default": "http-backend",
+                            "title": "Target port of the service to route traffic to.",
                             "type": "string"
                         },
                         "tls": {
@@ -2360,7 +2588,7 @@
                             "type": "string"
                         },
                         "tag": {
-                            "default": "8.21.0",
+                            "default": "8.22.0",
                             "title": "Tag to use for the test pod image.",
                             "type": "string"
                         }
@@ -2409,6 +2637,62 @@
             "default": [],
             "title": "Topology spread constraints for pod scheduling.",
             "type": "array"
+        },
+        "workload": {
+            "additionalProperties": false,
+            "properties": {
+                "kind": {
+                    "default": "Deployment",
+                    "enum": [
+                        "Deployment",
+                        "StatefulSet"
+                    ],
+                    "title": "Workload kind: Deployment (default) or StatefulSet.",
+                    "type": "string"
+                },
+                "statefulSet": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "annotations": {
+                            "default": {},
+                            "title": "Annotations on the StatefulSet resource (not the pod).",
+                            "type": "object"
+                        },
+                        "extraVolumeClaimTemplates": {
+                            "default": [],
+                            "items": {
+                                "type": "object"
+                            },
+                            "title": "Extra VolumeClaimTemplates appended after the chart-managed dynamic-plugins-root claim.",
+                            "type": "array"
+                        },
+                        "persistentVolumeClaimRetentionPolicy": {
+                            "default": {},
+                            "title": "Optional PVC retention policy for the StatefulSet.",
+                            "type": "object"
+                        },
+                        "podManagementPolicy": {
+                            "default": "",
+                            "title": "Pod management policy for the StatefulSet.",
+                            "type": "string"
+                        },
+                        "serviceName": {
+                            "default": "",
+                            "title": "serviceName for the StatefulSet spec. Defaults to the headless Service ({fullname}-headless).",
+                            "type": "string"
+                        },
+                        "updateStrategy": {
+                            "default": {},
+                            "title": "StatefulSet update strategy.",
+                            "type": "object"
+                        }
+                    },
+                    "title": "StatefulSet specific settings (ignored when kind is Deployment).",
+                    "type": "object"
+                }
+            },
+            "title": "Kubernetes workload controller for Backstage pod.",
+            "type": "object"
         }
     },
     "title": "Red Hat Developer Hub Helm Chart Values",

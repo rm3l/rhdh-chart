@@ -2,19 +2,19 @@
 
 set -euo pipefail
 
-DEFAULT_REPO="redhat-ai-dev/lightspeed-configs"
+DEFAULT_REPO="redhat-developer/rhdh-intelligent-assistant-configs"
 DEFAULT_REF="main"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-LIGHTSPEED_DIR="${REPO_ROOT}/charts/backstage/files/lightspeed"
+LIGHTSPEED_DIR="${REPO_ROOT}/charts/rhdh/files/intelligent-assistant"
 
 # Format: upstream_path|destination_path|transform_function
 TARGETS=(
   "lightspeed-core-configs/lightspeed-stack.yaml|${LIGHTSPEED_DIR}/lightspeed-stack.yaml|copy_fetched_file"
-  "llama-stack-configs/config.yaml|${LIGHTSPEED_DIR}/config.yaml|copy_fetched_file"
+  "lightspeed-core-configs/lightspeed-stack.yaml|${LIGHTSPEED_DIR}/lightspeed-stack-no-okp.yaml|strip_okp_config"
   "lightspeed-core-configs/rhdh-profile.py|${LIGHTSPEED_DIR}/rhdh-profile.py|copy_fetched_file"
-  "env/default-values.env|${LIGHTSPEED_DIR}/secret.yaml|render_secret_yaml_from_env"
+  "env/default-values.env|${LIGHTSPEED_DIR}/secret.example.yaml|render_secret_yaml_from_env"
 )
 
 copy_fetched_file() {
@@ -23,9 +23,34 @@ copy_fetched_file() {
 
   cp "${source_file}" "${destination_file}"
 }
+strip_okp_config() {
+  local source_file=$1
+  local destination_file=$2
+
+  yq 'del(.rag)' "${source_file}" > "${destination_file}"
+}
 render_secret_yaml_from_env() {
   local source_file=$1
   local destination_file=$2
+  
+  cat > "${destination_file}" << 'EOF'
+# This file is a reference template — it is NOT deployed by the chart.
+#
+# Use it as a starting point to create a Kubernetes Secret containing credentials
+# and settings for providers configured in lightspeed-stack.yaml. The Secret does
+# not enable a provider. Supply a provider-enabled stack through
+# intelligentAssistant.config.stack.existingConfigMap.
+#
+# Example:
+#   kubectl create secret generic my-lightspeed-secret \
+#     --from-env-file=<(grep -v '^#' secret.example.yaml | grep -v '^$')
+#
+# Then set in your values override:
+#   intelligentAssistant:
+#     existingSecret: "my-lightspeed-secret"
+#
+# Set to question_validity to enable question validation.
+EOF
 
   awk '
     /^[[:space:]]*$/ { next }
@@ -49,14 +74,14 @@ render_secret_yaml_from_env() {
       gsub(/"/, "\\\"", value)
       printf "%s: \"%s\"\n", key, value
     }
-  ' "${source_file}" > "${destination_file}"
+  ' "${source_file}" >> "${destination_file}"
 }
 
 usage() {
   cat <<EOF
 Usage: $0 [OPTIONS]
 
-Sync vendored Lightspeed config files from an upstream repo/ref.
+Sync vendored Lightspeed Core config files from an upstream repo/ref.
 
 Options:
   --repo REPO   GitHub repo in owner/name form (default: ${DEFAULT_REPO})
@@ -169,10 +194,10 @@ done
 
 if [[ "${check_only}" == true ]]; then
   if [[ "${changed_count}" -gt 0 ]]; then
-    echo "lightspeed config sync is required for ${changed_count} file(s)" >&2
+    echo "Lightspeed Core config sync is required for ${changed_count} file(s)" >&2
     exit 1
   fi
-  echo "lightspeed config files are already synced"
+  echo "Lightspeed Core config files are already synced"
 else
   echo "sync complete from ${repo}@${ref}"
 fi

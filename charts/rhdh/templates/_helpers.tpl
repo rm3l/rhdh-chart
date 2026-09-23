@@ -54,6 +54,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: backstage
 {{- end }}
 
+{{- define "rhdh.statefulSetHeadlessServiceName" -}}
+{{- printf "%s-headless" (include "rhdh.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "rhdh.statefulSetServiceName" -}}
+{{- default (include "rhdh.statefulSetHeadlessServiceName" .) .Values.workload.statefulSet.serviceName -}}
+{{- end -}}
+
 {{/*
 Create the name of the service account to use.
 */}}
@@ -180,55 +188,64 @@ When enabled, appends -primary when postgresql.architecture is "replication".
 {{- end -}}
 
 {{/*
-Return resolved Lightspeed values from .Values.lightspeed with validation.
+Return resolved Intelligent Assistant values from .Values.intelligentAssistant with validation.
 */}}
-{{- define "rhdh.lightspeed" -}}
-{{- $lightspeed := deepCopy .Values.lightspeed -}}
-{{- if $lightspeed.enabled -}}
-  {{- $volType := default "emptyDir" $lightspeed.runtimeVolume.type -}}
+{{- define "rhdh.intelligentAssistant" -}}
+{{- $intelligentAssistant := deepCopy .Values.intelligentAssistant -}}
+{{- if $intelligentAssistant.enabled -}}
+  {{- $volType := default "emptyDir" $intelligentAssistant.runtimeVolume.type -}}
   {{- if and (ne $volType "emptyDir") (ne $volType "persistentVolumeClaim") -}}
-    {{- fail "lightspeed.runtimeVolume.type must be emptyDir or persistentVolumeClaim" -}}
+    {{- fail "intelligentAssistant.runtimeVolume.type must be emptyDir or persistentVolumeClaim" -}}
   {{- end -}}
   {{- if eq $volType "persistentVolumeClaim" -}}
-    {{- if or (not (kindIs "map" $lightspeed.runtimeVolume.persistentVolumeClaim)) (empty $lightspeed.runtimeVolume.persistentVolumeClaim.claimName) -}}
-      {{- fail "lightspeed.runtimeVolume.persistentVolumeClaim.claimName is required when type=persistentVolumeClaim" -}}
+    {{- if or (not (kindIs "map" $intelligentAssistant.runtimeVolume.persistentVolumeClaim)) (empty $intelligentAssistant.runtimeVolume.persistentVolumeClaim.claimName) -}}
+      {{- fail "intelligentAssistant.runtimeVolume.persistentVolumeClaim.claimName is required when type=persistentVolumeClaim" -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
-{{- toYaml $lightspeed -}}
+{{- toYaml $intelligentAssistant -}}
 {{- end -}}
 
 {{/*
-Return the bundled filename for a Lightspeed config key.
+Return the bundled filename for an Intelligent Assistant config key.
 */}}
-{{- define "rhdh.lightspeed.configFile" -}}
-{{- $map := dict "stack" "lightspeed-stack.yaml" "server" "config.yaml" "profile" "rhdh-profile.py" -}}
-{{- get $map . | required (printf "unknown lightspeed config key: %s" .) -}}
+{{- define "rhdh.intelligentAssistant.configFile" -}}
+{{- $map := dict "stack" "lightspeed-stack.yaml" "profile" "rhdh-profile.py" -}}
+{{- get $map . | required (printf "unknown intelligentAssistant config key: %s" .) -}}
 {{- end -}}
 
 {{/*
-Return the Lightspeed ConfigMap name for a given key.
+Return the Intelligent Assistant ConfigMap name for a given key.
 If existingConfigMap.name is set, use it; otherwise generate from release name.
 Expects: dict "root" $ "key" <key> "entry" <config entry>
+
+Kubernetes names are limited to 63 characters. Using the infix "-ia-" (Intelligent
+Assistant) instead of "-intelligent-assistant-" leaves more of the fullname intact.
+Still truncate the fullname prefix (not the whole string) so "-ia-stack" and
+"-ia-profile" are never chopped off the right side — Helm's `trunc 63` would
+otherwise make those names collide when fullname is long.
 */}}
-{{- define "rhdh.lightspeed.configMapName" -}}
+{{- define "rhdh.intelligentAssistant.configMapName" -}}
 {{- if .entry.existingConfigMap.name -}}
   {{- .entry.existingConfigMap.name -}}
 {{- else -}}
-  {{- printf "%s-lightspeed-%s" (include "rhdh.fullname" .root) .key | trunc 63 | trimSuffix "-" -}}
+  {{- $suffix := printf "-ia-%s" .key -}}
+  {{- $maxPrefix := int (sub 63 (len $suffix)) -}}
+  {{- $prefix := include "rhdh.fullname" .root | trunc $maxPrefix | trimSuffix "-" -}}
+  {{- printf "%s%s" $prefix $suffix -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the key to use for a Lightspeed ConfigMap volume mount.
+Return the key to use for an Intelligent Assistant ConfigMap volume mount.
 If existingConfigMap.key is set, use it; otherwise use the bundled filename.
 Expects: dict "key" <key> "entry" <config entry>
 */}}
-{{- define "rhdh.lightspeed.configMapKey" -}}
+{{- define "rhdh.intelligentAssistant.configMapKey" -}}
 {{- if .entry.existingConfigMap.key -}}
   {{- .entry.existingConfigMap.key -}}
 {{- else -}}
-  {{- include "rhdh.lightspeed.configFile" .key -}}
+  {{- include "rhdh.intelligentAssistant.configFile" .key -}}
 {{- end -}}
 {{- end -}}
 
@@ -283,4 +300,89 @@ The version suffix is preserved in full; only the prefix is truncated.
 {{- $versionSuffix := printf "-%s" (.Chart.Version | replace "." "-") -}}
 {{- $prefix := printf "%s-create-sf-db" (include "rhdh.fullname" .) | trunc (int (sub 63 (len $versionSuffix))) | trimSuffix "-" -}}
 {{- printf "%s%s" $prefix $versionSuffix | lower -}}
+{{- end -}}
+
+{{/*
+Merge global.imagePullSecrets and intelligentAssistant.okp.imagePullSecrets into a single block.
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.imagePullSecrets" -}}
+{{- $ia := include "rhdh.intelligentAssistant" . | fromYaml -}}
+{{- $secrets := list -}}
+{{- range ((.Values.global).imagePullSecrets) -}}
+  {{- if kindIs "map" . -}}
+    {{- $secrets = append $secrets .name -}}
+  {{- else -}}
+    {{- $secrets = append $secrets . -}}
+  {{- end -}}
+{{- end -}}
+{{- range $ia.okp.imagePullSecrets -}}
+  {{- $secrets = append $secrets . -}}
+{{- end -}}
+{{- if $secrets }}
+imagePullSecrets:
+  {{- range $secrets | uniq }}
+  - name: {{ . }}
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return whether OKP should be deployed.
+OKP must be explicitly enabled on every platform.
+On OpenShift (openshift.route.enabled): also requires okp.route.enabled.
+On vanilla K8s: also requires okp.ingress.enabled and a non-empty okp.ingress.host.
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.active" -}}
+{{- $ia := include "rhdh.intelligentAssistant" . | fromYaml -}}
+{{- if and $ia.enabled $ia.okp.enabled (or (and .Values.openshift.route.enabled $ia.okp.route.enabled) (and (not .Values.openshift.route.enabled) $ia.okp.ingress.enabled $ia.okp.ingress.host)) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OKP deployment/service/route name.
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.fullname" -}}
+{{- printf "%s-ia-okp" (include "rhdh.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Return OKP labels.
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.labels" -}}
+{{ include "rhdh.labels" . }}
+app.kubernetes.io/component: intelligent-assistant-okp
+{{- end -}}
+
+{{/*
+Return OKP selector labels.
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "rhdh.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: intelligent-assistant-okp
+{{- end -}}
+
+{{/*
+Return the OKP service URL for the OKP_SERVICE_URL env var.
+When openshift.route.enabled is false and OKP Ingress is enabled with a host: uses the Ingress host.
+When openshift.clusterRouterBase is set: uses the Route URL (HTTPS, verified via the
+combined CA bundle prepared by the prepare-ca-bundle init container).
+Fallback: cluster-internal service URL (backend-only; citation links will not be
+externally routable in this case).
+*/}}
+{{- define "rhdh.intelligentAssistant.okp.serviceUrl" -}}
+{{- $ia := include "rhdh.intelligentAssistant" . | fromYaml -}}
+{{- $fullname := include "rhdh.intelligentAssistant.okp.fullname" . -}}
+{{- if and (not .Values.openshift.route.enabled) $ia.okp.ingress.host -}}
+  {{- if $ia.okp.ingress.tls.enabled -}}
+    {{- printf "https://%s" $ia.okp.ingress.host -}}
+  {{- else -}}
+    {{- printf "http://%s" $ia.okp.ingress.host -}}
+  {{- end -}}
+{{- else if .Values.openshift.clusterRouterBase -}}
+  {{- printf "https://%s-%s.%s" $fullname .Release.Namespace .Values.openshift.clusterRouterBase -}}
+{{- else -}}
+  {{- printf "http://%s.%s.svc.cluster.local:8080" $fullname .Release.Namespace -}}
+{{- end -}}
 {{- end -}}

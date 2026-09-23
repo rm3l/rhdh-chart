@@ -12,6 +12,11 @@ flattens configuration to root-level keys.
 > `helm upgrade` the release in place. Tooling (a migration script or AI skill)
 > to automate the values conversion is planned in the near future.
 
+> [!NOTE]
+> This guide focuses on values that **changed path, were removed, or changed
+> semantics**. Fields not explicitly listed here (e.g., `orchestrator.*`,
+> `test.*`) retain the same path and semantics — carry them over as-is.
+
 ## Migration steps
 
 1. Locate your existing values file (typically stored in your Git repo or
@@ -47,7 +52,7 @@ running an older cluster, upgrade it before migrating.
 | System volumes/mounts/env | User had to list them in full under `upstream.backstage.extraVolumes`, `extraVolumeMounts`, `extraEnvVars` | Hardcoded in templates; `extra*` keys only add user values |
 | Init containers | User had to specify the full init container array | System init containers are managed; use `preInitContainers` / `extraInitContainers` to add custom ones |
 | Database env vars | `POSTGRESQL_ADMIN_PASSWORD` injected manually via `upstream.backstage.extraEnvVars` | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD` auto-injected |
-| Image digests | No dedicated field | Every image (`image`, `catalogIndex.image`, `intelligentAssistant.core.image`, etc.) has a `digest` field for pinning by digest |
+| Image digests | `upstream.backstage.image.digest` only | Every image (`image`, `catalogIndex.image`, `intelligentAssistant.core.image`, etc.) has a `digest` field for pinning by digest |
 | Global image registry | Not available | `global.imageRegistry` overrides the registry for all container images consistently — useful for disconnected / air-gapped environments |
 | Lightspeed | `global.lightspeed.*` | Rebranded to `intelligentAssistant.*` |
 | OpenShift Route | `route.*` | `openshift.route.*` |
@@ -63,6 +68,15 @@ connectivity (e.g., external APIs, custom sidecars, or cross-namespace
 services), you must add the corresponding NetworkPolicy rules or the
 connections will be silently blocked.
 
+### Schema validation
+
+The new chart ships a JSON Schema (`values.schema.json`) that validates your
+values at install/upgrade time. Any unrecognized keys — including leftover
+`upstream.*` or `global.*` paths that were not migrated — will cause Helm to
+fail with a validation error. This makes it easy to catch stale values early,
+but it also means a partial migration will not install. Run
+`helm template -f new-values.yaml` to validate your file before upgrading.
+
 ### New features (no old-chart equivalent)
 
 These capabilities are new in the `redhat-developer-hub` chart and have no
@@ -70,10 +84,6 @@ mapping from the old chart, but are worth knowing about during migration:
 
 - **StatefulSet workload** — set `workload.kind: StatefulSet` for stable pod
   identity and persistent volumes via `volumeClaimTemplates`.
-- **Gateway API HTTPRoute** — `httpRoute.*` as an alternative to Ingress or
-  OpenShift Route.
-- **PodDisruptionBudget** — `podDisruptionBudget.create: true` for availability
-  guarantees during node drains.
 - **External database** — `externalDatabase.*` for connecting to a database
   outside the cluster when `postgresql.enabled: false`.
 - **OKP (Offline Knowledge Portal)** — `intelligentAssistant.okp.*` for
@@ -88,7 +98,18 @@ mapping from the old chart, but are worth knowing about during migration:
 | `upstream.backstage.image.registry` | `image.registry` |
 | `upstream.backstage.image.repository` | `image.repository` |
 | `upstream.backstage.image.tag` | `image.tag` |
+| `upstream.backstage.image.digest` | `image.digest` |
 | `upstream.backstage.image.pullPolicy` | `image.pullPolicy` |
+| `upstream.backstage.image.pullSecrets` | `imagePullSecrets` | Promoted to root |
+
+### Chart-level overrides
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.nameOverride` | `nameOverride` | Defaults to `developer-hub` to preserve resource names |
+| `upstream.fullnameOverride` | `fullnameOverride` | |
+| `upstream.commonLabels` | `commonLabels` | |
+| `upstream.commonAnnotations` | `commonAnnotations` | |
 
 ### Global parameters
 
@@ -132,11 +153,16 @@ mapping from the old chart, but are worth knowing about during migration:
 | Old path | New path | Notes |
 |----------|----------|-------|
 | `upstream.backstage.replicaCount` | `replicaCount` | |
+| `upstream.backstage.revisionHistoryLimit` | `revisionHistoryLimit` | |
+| `upstream.backstage.strategy` | `strategy` | |
+| `upstream.backstage.annotations` | `deploymentAnnotations` | Renamed to clarify these are on the Deployment, not the pod |
 | `upstream.backstage.podAnnotations` | `podAnnotations` | |
 | `upstream.backstage.podLabels` | `podLabels` | |
 | `upstream.backstage.nodeSelector` | `nodeSelector` | |
 | `upstream.backstage.tolerations` | `tolerations` | |
 | `upstream.backstage.affinity` | `affinity` | |
+| `upstream.backstage.topologySpreadConstraints` | `topologySpreadConstraints` | |
+| `upstream.backstage.hostAliases` | `hostAliases` | |
 
 ### Service account
 
@@ -155,6 +181,7 @@ mapping from the old chart, but are worth knowing about during migration:
 | `upstream.backstage.args` | `argsOverride` | System `--config` flags now auto-injected |
 | `upstream.backstage.extraEnvVars` | `extraEnv` | System env vars auto-injected; only add custom ones |
 | `upstream.backstage.extraEnvVarsSecrets` | `extraEnvFrom` | Use `secretRef` entries instead of secret name strings |
+| `upstream.backstage.extraEnvVarsCM` | `extraEnvFrom` | Use `configMapRef` entries instead of ConfigMap name strings |
 
 ### Volumes and mounts
 
@@ -176,6 +203,7 @@ mapping from the old chart, but are worth knowing about during migration:
 
 | Old path | New path |
 |----------|----------|
+| `upstream.backstage.podSecurityContext` | `podSecurityContext` |
 | `upstream.backstage.containerSecurityContext` | `containerSecurityContext` |
 | `upstream.backstage.resources` | `resources` |
 
@@ -189,9 +217,20 @@ mapping from the old chart, but are worth knowing about during migration:
 
 ### Service
 
-| Old path | New path |
-|----------|----------|
-| `upstream.service.extraPorts` | `service.extraPorts` |
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.service.type` | `service.type` | |
+| `upstream.service.ports.backend` | `service.port` | Flattened from `ports.backend` to `port` |
+| `upstream.service.nodePorts.backend` | `service.nodePort` | Flattened from `nodePorts.backend` to `nodePort` |
+| `upstream.service.extraPorts` | `service.extraPorts` | |
+| `upstream.service.clusterIP` | `service.clusterIP` | |
+| `upstream.service.loadBalancerIP` | `service.loadBalancerIP` | |
+| `upstream.service.loadBalancerSourceRanges` | `service.loadBalancerSourceRanges` | |
+| `upstream.service.externalTrafficPolicy` | `service.externalTrafficPolicy` | |
+| `upstream.service.sessionAffinity` | `service.sessionAffinity` | |
+| `upstream.service.annotations` | `service.annotations` | |
+| `upstream.service.ipFamilyPolicy` | `service.ipFamilyPolicy` | |
+| `upstream.service.ipFamilies` | `service.ipFamilies` | |
 
 ### OpenShift Route
 
@@ -210,12 +249,47 @@ mapping from the old chart, but are worth knowing about during migration:
 | `route.tls.destinationCACertificate` | `openshift.route.tls.destinationCACertificate` |
 | `route.tls.insecureEdgeTerminationPolicy` | `openshift.route.tls.insecureEdgeTerminationPolicy` |
 
+### Autoscaling (HPA)
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.backstage.autoscaling.enabled` | `autoscaling.enabled` | |
+| `upstream.backstage.autoscaling.minReplicas` | `autoscaling.minReplicas` | |
+| `upstream.backstage.autoscaling.maxReplicas` | `autoscaling.maxReplicas` | Old default was `100`, new default is `3` |
+| `upstream.backstage.autoscaling.targetCPUUtilizationPercentage` | `autoscaling.targetCPUUtilizationPercentage` | |
+| `upstream.backstage.autoscaling.targetMemoryUtilizationPercentage` | `autoscaling.targetMemoryUtilizationPercentage` | |
+
+### Pod Disruption Budget
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.backstage.pdb.create` | `podDisruptionBudget.create` | |
+| `upstream.backstage.pdb.minAvailable` | `podDisruptionBudget.minAvailable` | |
+| `upstream.backstage.pdb.maxUnavailable` | `podDisruptionBudget.maxUnavailable` | |
+
+### Gateway API HTTPRoute
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.httpRoute.enabled` | `httpRoute.enabled` | |
+| `upstream.httpRoute.labels` | `httpRoute.labels` | |
+| `upstream.httpRoute.annotations` | `httpRoute.annotations` | |
+| `upstream.httpRoute.parentRefs` | `httpRoute.parentRefs` | |
+| `upstream.httpRoute.hostnames` | `httpRoute.hostnames` | |
+| `upstream.httpRoute.rules` | `httpRoute.rules` | |
+
 ### Ingress
 
 | Old path | New path | Notes |
 |----------|----------|-------|
 | `upstream.ingress.enabled` | `ingress.enabled` | |
+| `upstream.ingress.className` | `ingress.className` | |
+| `upstream.ingress.annotations` | `ingress.annotations` | |
 | `upstream.ingress.host` | `ingress.hosts[].host` | Now an array of host objects |
+| `upstream.ingress.path` | `ingress.hosts[].paths[].path` | Nested under hosts array |
+| `upstream.ingress.extraHosts` | `ingress.hosts[]` | Merged into main hosts array |
+| `upstream.ingress.tls.enabled` / `tls.secretName` | `ingress.tls[]` | Now a list of TLS entries |
+| `upstream.ingress.extraTls` | `ingress.tls[]` | Merged into main tls array |
 
 ### Catalog index
 
@@ -244,6 +318,17 @@ mapping from the old chart, but are worth knowing about during migration:
 | `upstream.metrics.serviceMonitor.enabled` | `metrics.serviceMonitor.enabled` |
 | `upstream.metrics.serviceMonitor.path` | `metrics.serviceMonitor.path` |
 | `upstream.metrics.serviceMonitor.port` | `metrics.serviceMonitor.port` |
+| `upstream.metrics.serviceMonitor.interval` | `metrics.serviceMonitor.interval` |
+| `upstream.metrics.serviceMonitor.labels` | `metrics.serviceMonitor.labels` |
+| `upstream.metrics.serviceMonitor.annotations` | `metrics.serviceMonitor.annotations` |
+
+### Network policies
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.networkPolicy.enabled` | _(removed)_ | New chart always deploys default-deny NetworkPolicies; see [Important behavioral changes](#important-behavioral-changes) |
+| `upstream.networkPolicy.ingressRules.*` | _(removed)_ | |
+| `upstream.networkPolicy.egressRules.*` | _(removed)_ | |
 
 ### Intelligent Assistant (formerly Lightspeed)
 
@@ -268,8 +353,6 @@ mapping from the old chart, but are worth knowing about during migration:
 
 | Old path | New path | Notes |
 |----------|----------|-------|
-| `orchestrator.enabled` | `orchestrator.enabled` | |
-| `orchestrator.plugins` | `orchestrator.plugins` | |
 | `orchestrator.sonataflowPlatform.externalDBsecretRef` | `orchestrator.sonataflowPlatform.externalDB.existingSecret` | Restructured |
 | `orchestrator.sonataflowPlatform.externalDBName` | `orchestrator.sonataflowPlatform.externalDB.name` | |
 | `orchestrator.sonataflowPlatform.externalDBHost` | `orchestrator.sonataflowPlatform.externalDB.host` | |
@@ -283,8 +366,20 @@ mapping from the old chart, but are worth knowing about during migration:
 
 | Old path | New path | Notes |
 |----------|----------|-------|
-| `test.enabled` | `test.enabled` | |
-| `test.image.registry` | `test.image.registry` | |
-| `test.image.repository` | `test.image.repository` | |
 | `test.image.tag` | `test.image.tag` | Default changed from `latest` to a pinned version |
 | `test.injectTestNpmrcSecret` | _(removed)_ | No longer needed |
+
+### Removed values (no equivalent)
+
+The following old-chart values have no equivalent in the new chart because the
+functionality is either hardcoded or no longer applicable:
+
+| Old path | Notes |
+|----------|-------|
+| `upstream.backstage.installDir` | Hardcoded in the new chart |
+| `upstream.backstage.containerPorts.backend` | Hardcoded to `7007` |
+| `upstream.backstage.extraPorts` | Use `service.extraPorts` instead |
+| `upstream.backstage.lifecycleHooks` | Not supported |
+| `upstream.backstage.priorityClassName` | Not supported |
+| `upstream.backstage.terminationGracePeriodSeconds` | Not supported |
+| `upstream.diagnosticMode.*` | Not supported |

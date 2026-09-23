@@ -786,12 +786,6 @@
             "title": "Kubernetes Ingress configuration.",
             "type": "object"
         },
-        "lifecycleHooks": {
-            "default": {},
-            "description": "Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
-            "title": "Lifecycle hooks for the main RHDH container.",
-            "type": "object"
-        },
         "intelligentAssistant": {
             "additionalProperties": false,
             "default": {
@@ -1817,6 +1811,12 @@
                 }
             },
             "title": "Built-in Intelligent Assistant feature configuration.",
+            "type": "object"
+        },
+        "lifecycleHooks": {
+            "default": {},
+            "description": "Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
+            "title": "Lifecycle hooks for the main RHDH container.",
             "type": "object"
         },
         "livenessProbe": {

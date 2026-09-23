@@ -33,6 +33,11 @@ flattens configuration to root-level keys.
 
 4. Verify the deployment is healthy.
 
+## Prerequisites
+
+The new chart requires **Kubernetes 1.31+** (OpenShift 4.18+). If you are
+running an older cluster, upgrade it before migrating.
+
 ## Key structural changes
 
 | Aspect | Old chart (`backstage`) | New chart (`redhat-developer-hub`) |
@@ -46,6 +51,33 @@ flattens configuration to root-level keys.
 | Global image registry | Not available | `global.imageRegistry` overrides the registry for all container images consistently — useful for disconnected / air-gapped environments |
 | Lightspeed | `global.lightspeed.*` | Rebranded to `intelligentAssistant.*` |
 | OpenShift Route | `route.*` | `openshift.route.*` |
+
+## Important behavioral changes
+
+### Network policies
+
+The new chart deploys **default-deny** NetworkPolicies for the RHDH pod and
+allows only the traffic it knows about (DNS, PostgreSQL, OpenShift
+ingress/monitoring). If your deployment relies on additional network
+connectivity (e.g., external APIs, custom sidecars, or cross-namespace
+services), you must add the corresponding NetworkPolicy rules or the
+connections will be silently blocked.
+
+### New features (no old-chart equivalent)
+
+These capabilities are new in the `redhat-developer-hub` chart and have no
+mapping from the old chart, but are worth knowing about during migration:
+
+- **StatefulSet workload** — set `workload.kind: StatefulSet` for stable pod
+  identity and persistent volumes via `volumeClaimTemplates`.
+- **Gateway API HTTPRoute** — `httpRoute.*` as an alternative to Ingress or
+  OpenShift Route.
+- **PodDisruptionBudget** — `podDisruptionBudget.create: true` for availability
+  guarantees during node drains.
+- **External database** — `externalDatabase.*` for connecting to a database
+  outside the cluster when `postgresql.enabled: false`.
+- **OKP (Offline Knowledge Portal)** — `intelligentAssistant.okp.*` for
+  offline RHDH documentation retrieval.
 
 ## Values mapping reference
 
@@ -71,6 +103,7 @@ flattens configuration to root-level keys.
 | Old path | New path | Notes |
 |----------|----------|-------|
 | `upstream.backstage.appConfig` | `appConfig` | Entire tree flattened to root |
+| `upstream.backstage.extraAppConfig` | `extraAppConfig` | Same format (list of `filename` + `configMapRef`) |
 | `upstream.backstage.appConfig.backend.database.connection.password` | `appConfig.backend.database.connection.password` | Env var changed from `POSTGRESQL_ADMIN_PASSWORD` to `POSTGRES_PASSWORD` |
 | `upstream.backstage.appConfig.backend.database.connection.user` | `appConfig.backend.database.connection.user` | Env var changed from hardcoded `postgres` to `POSTGRES_USER` |
 
@@ -94,6 +127,26 @@ flattens configuration to root-level keys.
 | `upstream.backstage.initContainers[0].securityContext` | `dynamicPlugins.initContainer.securityContext` | |
 | `upstream.backstage.initContainers[0].env` | `dynamicPlugins.initContainer.extraEnv` | System env vars auto-injected |
 
+### Pod scheduling, replicas, and metadata
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.backstage.replicaCount` | `replicaCount` | |
+| `upstream.backstage.podAnnotations` | `podAnnotations` | |
+| `upstream.backstage.podLabels` | `podLabels` | |
+| `upstream.backstage.nodeSelector` | `nodeSelector` | |
+| `upstream.backstage.tolerations` | `tolerations` | |
+| `upstream.backstage.affinity` | `affinity` | |
+
+### Service account
+
+| Old path | New path | Notes |
+|----------|----------|-------|
+| `upstream.serviceAccount.create` | `serviceAccount.create` | Defaults to `false` |
+| `upstream.serviceAccount.name` | `serviceAccount.name` | |
+| `upstream.serviceAccount.annotations` | `serviceAccount.annotations` | |
+| `upstream.serviceAccount.automount` | `serviceAccount.automount` | |
+
 ### Container command, args, and env
 
 | Old path | New path | Notes |
@@ -101,6 +154,7 @@ flattens configuration to root-level keys.
 | `upstream.backstage.command` | `commandOverride` | |
 | `upstream.backstage.args` | `argsOverride` | System `--config` flags now auto-injected |
 | `upstream.backstage.extraEnvVars` | `extraEnv` | System env vars auto-injected; only add custom ones |
+| `upstream.backstage.extraEnvVarsSecrets` | `extraEnvFrom` | Use `secretRef` entries instead of secret name strings |
 
 ### Volumes and mounts
 
@@ -203,16 +257,11 @@ flattens configuration to root-level keys.
 | `global.lightspeed.sidecar.command` | `intelligentAssistant.core.commandOverride` | |
 | `global.lightspeed.sidecar.args` | `intelligentAssistant.core.argsOverride` | |
 | `global.lightspeed.sidecar.env` | `intelligentAssistant.core.extraEnv` | |
-| `global.lightspeed.initContainer.image` | `intelligentAssistant.ragInit.image.*` | Single string split into `registry`/`repository`/`tag` |
-| `global.lightspeed.initContainer.resources` | `intelligentAssistant.ragInit.resources` | |
-| `global.lightspeed.initContainer.securityContext` | `intelligentAssistant.ragInit.securityContext` | |
-| `global.lightspeed.initContainer.command` | `intelligentAssistant.ragInit.commandOverride` | |
-| `global.lightspeed.initContainer.args` | `intelligentAssistant.ragInit.argsOverride` | |
-| `global.lightspeed.initContainer.env` | `intelligentAssistant.ragInit.extraEnv` | |
+| `global.lightspeed.initContainer.*` | _(removed)_ | The RAG init container no longer exists in the new chart |
 | `global.lightspeed.runtimeVolume.type` | `intelligentAssistant.runtimeVolume.type` | |
 | `global.lightspeed.runtimeVolume.emptyDir` | `intelligentAssistant.runtimeVolume.emptyDir` | |
 | `global.lightspeed.runtimeVolume.persistentVolumeClaim` | `intelligentAssistant.runtimeVolume.persistentVolumeClaim` | |
-| `global.lightspeed.configMaps` | `intelligentAssistant.config.{stack,server,profile}.existingConfigMap` | Array replaced with structured per-file config |
+| `global.lightspeed.configMaps` | `intelligentAssistant.config.{stack,profile}.existingConfigMap` | Array replaced with structured per-file config |
 | `global.lightspeed.secret.create` / `.name` | `intelligentAssistant.existingSecret` | Simplified to a secret name string |
 
 ### Orchestrator
